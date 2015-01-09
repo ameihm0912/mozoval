@@ -10,6 +10,10 @@ def check_args(args):
         'list': (
             1,
             'usage: mopreter.py list oval_spec_path\n'
+        ),
+        'run': (
+            1,
+            'usage: mopreter.py run oval_spec_path\n'
         )
         }
 
@@ -20,7 +24,15 @@ def check_args(args):
         sys.exit(0)
 
 def do_list(path):
-    libmopreter.parse_oval_checks(path)
+    checks = libmopreter.parse_oval_checks(path)
+    for d in checks.definitions:
+        x = checks.definitions[d]
+        sys.stdout.write('%s %s\n' % (x.oval_id, x.meta_title))
+
+def do_run(path):
+    checks = libmopreter.parse_oval_checks(path)
+
+    checks.run()
 
 def usage():
     sys.stdout.write('usage: mopreter.py [-h] command arguments...\n')
@@ -40,6 +52,8 @@ def mopreter():
 
     if args[0] == 'list':
         do_list(args[1])
+    elif args[0] == 'run':
+        do_run(args[1])
 
 if __name__ == '__main__':
     mopreter()

@@ -1,5 +1,6 @@
 #!/usr/bin/python2
 
+import sys
 import xml.etree.ElementTree as ET
 
 import libmopreter as lm
@@ -29,12 +30,13 @@ class OvalParserHints(object):
 
 class OvalState(object):
     @staticmethod
-    def allocator(et):
+    def allocator(et, checks):
         if 'rpminfo_state' in et.tag:
-            return lm.RPMInfoState(et)
-        return OvalState(et)
+            return lm.RPMInfoState(et, checks)
+        return OvalState(et, checks)
 
-    def __init__(self, et):
+    def __init__(self, et, checks):
+        self.checks = checks
         self.state_id = None
 
         if 'id' not in et.attrib:
@@ -43,12 +45,13 @@ class OvalState(object):
 
 class OvalObject(object):
     @staticmethod
-    def allocator(et):
+    def allocator(et, checks):
         if 'rpminfo_object' in et.tag:
-            return lm.RPMInfoObject(et)
-        return OvalObject(et)
+            return lm.RPMInfoObject(et, checks)
+        return OvalObject(et, checks)
 
-    def __init__(self, et):
+    def __init__(self, et, checks):
+        self.checks = checks
         self.object_id = None
 
         if 'id' not in et.attrib:
@@ -57,10 +60,10 @@ class OvalObject(object):
 
 class OvalTest(object):
     @staticmethod
-    def allocator(et):
+    def allocator(et, checks):
         if 'rpminfo_test' in et.tag:
-            return lm.RPMInfoTest(et)
-        return OvalTest(et)
+            return lm.RPMInfoTest(et, checks)
+        return OvalTest(et, checks)
 
     def parse_linux_object_state(self, et):
         obj = et.find(lm.OvalParserHints.def_test_linux_object)
@@ -73,7 +76,8 @@ class OvalTest(object):
             raise OvalParserException('test has no state reference')
         self.state_ref = state.attrib['state_ref']
 
-    def __init__(self, et):
+    def __init__(self, et, checks):
+        self.checks = checks
         self.test_id = None
         self.object_ref = None
         self.state_ref = None
@@ -88,9 +92,13 @@ class OvalTest(object):
         self.comment = et.attrib['comment']
 
 class OvalCriterion(object):
+    def execute(self):
+        parser_output('        [criterion] %s\n' % self.comment)
+
     def __init__(self, et):
         self.comment = 'Unknown'
         self.test_ref = None
+        self.result = None
 
         if 'test_ref' not in et.attrib:
             raise OvalParserException('criterion has no test reference')
@@ -104,10 +112,28 @@ class OvalCriteria(object):
     TYPE_AND = 0
     TYPE_OR = 1
 
+    def execute(self):
+        if self.criteria_type == self.TYPE_AND:
+            cs = 'AND'
+        elif self.criteria_type == self.TYPE_OR:
+            cs = 'OR'
+        else:
+            raise OvalParserException('bad type in criteria execute')
+        parser_output('    [criteria] %s\n' % cs)
+
+        for c in self.criteria_list:
+            c.execute()
+
+        for c in self.criterion_list:
+            c.execute()
+
+        parser_output('    [criteria] END %s\n' % cs)
+
     def __init__(self, et):
         self.criteria_type = 0
         self.criterion_list = []
         self.criteria_list = []
+        self.result = None
 
         if 'operator' not in et.attrib:
             raise OvalParserException('criteria has no operator')
@@ -128,14 +154,21 @@ class OvalCriteria(object):
             self.criterion_list.append(OvalCriterion(i))
 
 class OvalDefinition(object):
-    def __init__(self, et):
+    def __init__(self, et, checks):
+        self.checks = checks
+
         self.oval_id = None
+        self.meta_title = 'Unknown'
 
         self.criteria = None
 
-        self.meta_title = 'Unknown'
-
         self.parse_et(et)
+
+    def execute(self):
+        parser_output('[%s] executing\n' % self.oval_id)
+        parser_output('    Check is "%s"\n' % self.meta_title)
+
+        self.criteria.execute()
 
     def parse_et(self, et):
         if 'id' not in et.attrib:
@@ -163,6 +196,11 @@ class OvalChecks(object):
         self.objects = {}
         self.tests = {}
 
+    def run(self):
+        for d in self.definitions:
+            x = self.definitions[d]
+            x.execute()
+
     def add_definition(self, d):
         if d.oval_id in self.definitions:
             raise OvalParserException('duplicate id %s' % d.oval_id)
@@ -183,6 +221,9 @@ class OvalChecks(object):
             raise OvalParserException('duplicate id %s' % d.oval_id)
         self.tests[t.test_id] = t
 
+def parser_output(s):
+    sys.stdout.write(s)
+
 def parse_oval_checks(path):
     ret = OvalChecks()
 
@@ -192,20 +233,22 @@ def parse_oval_checks(path):
 
     definitions = root.findall(OvalParserHints.tag_def)
     for d in definitions:
-        new = OvalDefinition(d)
+        new = OvalDefinition(d, ret)
         ret.add_definition(new)
 
     objects = root.find(OvalParserHints.tag_obj)
     for o in objects:
-        new = OvalObject.allocator(o)
+        new = OvalObject.allocator(o, ret)
         ret.add_object(new)
 
     states = root.find(OvalParserHints.tag_states)
     for s in states:
-        new = OvalState.allocator(s)
+        new = OvalState.allocator(s, ret)
         ret.add_state(new)
 
     tests = root.find(OvalParserHints.tag_tests)
     for t in tests:
-        new = OvalTest.allocator(t)
+        new = OvalTest.allocator(t, ret)
         ret.add_test(new)
+
+    return ret
