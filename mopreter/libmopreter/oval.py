@@ -50,7 +50,11 @@ class OvalObject(object):
             return lm.RPMInfoObject(et, checks)
         return OvalObject(et, checks)
 
+    def prepare(self):
+        self.prepared = True
+
     def __init__(self, et, checks):
+        self.prepared = False
         self.checks = checks
         self.object_id = None
 
@@ -76,6 +80,16 @@ class OvalTest(object):
             raise OvalParserException('test has no state reference')
         self.state_ref = state.attrib['state_ref']
 
+    def prepare(self):
+        if self.object_ref not in self.checks.objects:
+            raise OvalParserException('referenced object %s not found' % \
+                self.object_ref)
+        self.checks.objects[self.object_ref].prepare()
+
+    def execute(self):
+        raise OvalParserException('request to execute unhandled OVAL ' \
+            'test type')
+
     def __init__(self, et, checks):
         self.checks = checks
         self.test_id = None
@@ -95,7 +109,14 @@ class OvalCriterion(object):
     def execute(self):
         parser_output('        [criterion] %s\n' % self.comment)
 
-    def __init__(self, et):
+        if self.test_ref not in self.tests:
+            raise OvalParserException('referenced test %s not found' % \
+                self.test_ref)
+        self.tests[self.test_ref].prepare()
+        self.tests[self.test_ref].execute()
+
+    def __init__(self, et, tests):
+        self.tests = tests
         self.comment = 'Unknown'
         self.test_ref = None
         self.result = None
@@ -129,7 +150,8 @@ class OvalCriteria(object):
 
         parser_output('    [criteria] END %s\n' % cs)
 
-    def __init__(self, et):
+    def __init__(self, et, tests):
+        self.tests = tests
         self.criteria_type = 0
         self.criterion_list = []
         self.criteria_list = []
@@ -147,11 +169,11 @@ class OvalCriteria(object):
 
         c = et.findall(OvalParserHints.def_criteria)
         for i in c:
-            self.criteria_list.append(OvalCriteria(i))
+            self.criteria_list.append(OvalCriteria(i, self.tests))
 
         c = et.findall(OvalParserHints.def_criterion)
         for i in c:
-            self.criterion_list.append(OvalCriterion(i))
+            self.criterion_list.append(OvalCriterion(i, self.tests))
 
 class OvalDefinition(object):
     def __init__(self, et, checks):
@@ -187,7 +209,7 @@ class OvalDefinition(object):
         if criteria == None:
             raise OvalParserException('criteria element not found ' \
                 'in definition')
-        self.criteria = OvalCriteria(criteria)
+        self.criteria = OvalCriteria(criteria, self.checks.tests)
 
 class OvalChecks(object):
     def __init__(self):
