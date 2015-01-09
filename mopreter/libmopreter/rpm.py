@@ -61,6 +61,10 @@ class RPMInfoObject(lm.OvalObject):
         self.prepared = True
 
 class RPMInfoState(lm.OvalState):
+    STATE_TYPE_EVR = 0
+    STATE_TYPE_VERSION = 1
+    STATE_TYPE_SIGNATURE_KEYID = 2
+
     def __init__(self, et, checks):
         super(RPMInfoState, self).__init__(et, checks)
 
@@ -68,6 +72,15 @@ class RPMInfoState(lm.OvalState):
 
         # There are a few types of evaluations we support right now, some are
         # just ignored and some are handled, others will result in an exception
+        v = et.find(lm.OvalParserHints.def_state_linux_evr)
+        if v != None:
+            self.state_type = self.STATE_TYPE_EVR
+        v = et.find(lm.OvalParserHints.def_state_linux_version)
+        if v != None:
+            self.state_type = self.STATE_TYPE_VERSION
+        v = et.find(lm.OvalParserHints.def_state_linux_signature_keyid)
+        if v != None:
+            self.state_type = self.STATE_TYPE_SIGNATURE_KEYID
 
     def evaluate(self, obj):
         pass

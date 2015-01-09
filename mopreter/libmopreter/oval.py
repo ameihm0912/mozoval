@@ -25,7 +25,11 @@ class OvalParserHints(object):
 
     def_test_linux_object = '%sobject' % linux_schema_loc
     def_test_linux_state = '%sstate' % linux_schema_loc
+
     def_state_linux_evr = '%sevr' % linux_schema_loc
+    def_state_linux_version = '%sversion' % linux_schema_loc
+    def_state_linux_signature_keyid = \
+        '%ssignature_keyid' % linux_schema_loc
 
     def_rpminfo_name = '%sname' % linux_schema_loc
 
@@ -42,6 +46,7 @@ class OvalState(object):
     def __init__(self, et, checks):
         self.checks = checks
         self.state_id = None
+        self.state_type = 0
 
         if 'id' not in et.attrib:
             raise OvalParserException('state has no id')
