@@ -66,6 +66,12 @@ class RPMInfoState(lm.OvalState):
 
         rpminfomgr_prod()
 
+        # There are a few types of evaluations we support right now, some are
+        # just ignored and some are handled, others will result in an exception
+
+    def evaluate(self, obj):
+        pass
+
 class RPMInfoTest(lm.OvalTest):
     def __init__(self, et, checks):
         super(RPMInfoTest, self).__init__(et, checks)
@@ -75,7 +81,14 @@ class RPMInfoTest(lm.OvalTest):
         self.parse_linux_object_state(et)
 
     def execute(self):
-        pass
+        if self.state_ref not in self.checks.states:
+            raise OvalParserException('referenced state %s not found' % \
+                self.state_ref)
+        if self.object_ref not in self.checks.objects:
+            raise OvalParserException('referenced object %s not found' % \
+                self.object_ref)
+        obj = self.checks.objects[self.object_ref]
+        self.checks.states[self.state_ref].evaluate(obj)
 
 def rpminfomgr_prod():
     global rpminfomgr

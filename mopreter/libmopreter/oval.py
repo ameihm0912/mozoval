@@ -25,6 +25,7 @@ class OvalParserHints(object):
 
     def_test_linux_object = '%sobject' % linux_schema_loc
     def_test_linux_state = '%sstate' % linux_schema_loc
+    def_state_linux_evr = '%sevr' % linux_schema_loc
 
     def_rpminfo_name = '%sname' % linux_schema_loc
 
@@ -34,6 +35,9 @@ class OvalState(object):
         if 'rpminfo_state' in et.tag:
             return lm.RPMInfoState(et, checks)
         return OvalState(et, checks)
+
+    def evaluate(self, obj):
+        raise OvalParserException('request to evaluate unhandled OVAL state')
 
     def __init__(self, et, checks):
         self.checks = checks
