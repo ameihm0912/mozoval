@@ -42,7 +42,7 @@ func Init() {
 	parser_cfg = default_parser_config()
 }
 
-func Parse(path string) error {
+func Parse(path string) (*GOvalDefinitions, error) {
 	var perr ParserError
 
 	debug_prt("Parsing %s\n", path)
@@ -50,16 +50,16 @@ func Parse(path string) error {
 	xfd, err := os.Open(path)
 	if err != nil {
 		perr.s = fmt.Sprintf("Error opening file: %v", err)
-		return &perr
+		return nil, &perr
 	}
 
 	decoder := xml.NewDecoder(xfd)
 	ok := decoder.Decode(&od)
 	if ok != nil {
 		perr.s = fmt.Sprintf("Error parsing %v: invalid XML format?", path)
-		return &perr
+		return nil, &perr
 	}
 	xfd.Close()
 
-	return nil
+	return &od, nil
 }

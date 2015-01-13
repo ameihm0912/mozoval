@@ -14,9 +14,13 @@ const (
 var cfg Config
 
 func list_mode() {
-	ret := oval.Parse(cfg.flag_list)
+	od, ret := oval.Parse(cfg.flag_list)
 	if ret != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", ret)
+	}
+
+	for _, v := range od.Definitions.Definitions {
+		fmt.Printf("%s %s\n", v.ID, v.Metadata.Title)
 	}
 }
 
