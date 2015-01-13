@@ -14,15 +14,16 @@ func (pe *ParserError) Error() string {
 }
 
 type Config struct {
-	flag_debug bool
+	flag_debug	bool
+	max_checks	int
 }
 
 var parser_cfg Config
-var od GOvalDefinitions
 
 func default_parser_config() Config {
 	cfg := Config{
 		flag_debug: false,
+		max_checks: 10,
 	}
 	return cfg
 }
@@ -38,11 +39,47 @@ func debug_prt(s string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, s, args...)
 }
 
+func Execute(od *GOvalDefinitions) {
+	debug_prt("Executing all applicable checks\n")
+
+	results := make([]GOvalResult, 0)
+	reschan := make(chan GOvalResult)
+	curchecks := 0
+	for _, v := range od.Definitions.Definitions {
+		debug_prt("Executing definition %s...\n", v.ID)
+
+		for {
+			nodata := false
+			select {
+			case s := <- reschan:
+				results = append(results, s)
+				curchecks--
+			default:
+				nodata = true
+				break
+			}
+			if nodata {
+				break
+			}
+		}
+
+		if curchecks == parser_cfg.max_checks {
+			// Block and wait for a free slot
+			s := <- reschan
+			results = append(results, s)
+			curchecks--
+		}
+		go v.Evaluate(reschan)
+		curchecks++
+	}
+}
+
 func Init() {
 	parser_cfg = default_parser_config()
 }
 
 func Parse(path string) (*GOvalDefinitions, error) {
+	var od GOvalDefinitions
 	var perr ParserError
 
 	debug_prt("Parsing %s\n", path)
