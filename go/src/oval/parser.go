@@ -43,30 +43,22 @@ func Init() {
 }
 
 func Parse(path string) error {
-	ret := ParserError{}
+	var perr ParserError
 
 	debug_prt("Parsing %s\n", path)
 
 	xfd, err := os.Open(path)
 	if err != nil {
-		ret.s = fmt.Sprintf("Error opening file: %v", err)
-		return &ret
+		perr.s = fmt.Sprintf("Error opening file: %v", err)
+		return &perr
 	}
 
 	decoder := xml.NewDecoder(xfd)
-	/*for {
-		t, _ := decoder.Token()
-		switch se := t.(type) {
-		case xml.StartElement:
-			fmt.Println(se)
-		}
-	}*/
 	ok := decoder.Decode(&od)
 	if ok != nil {
-		fmt.Println(ok)
+		perr.s = fmt.Sprintf("Error parsing %v: invalid XML format?", path)
+		return &perr
 	}
-	fmt.Println(od)
-
 	xfd.Close()
 
 	return nil

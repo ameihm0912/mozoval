@@ -43,6 +43,8 @@ func main() {
 
 	if (cfg.flag_debug) {
 		set_debug(true)
+		// If we enable debugging on the command line, also turn it on
+		// in the OVAL library
 		oval.Set_debug(true)
 		debug_prt("Debugging enabled\n")
 	}
