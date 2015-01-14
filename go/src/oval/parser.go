@@ -13,20 +13,20 @@ func (pe *ParserError) Error() string {
 	return pe.s
 }
 
-type Config struct {
+type config struct {
 	flag_debug	bool
 	max_checks	int
 }
 
-type DataMgr struct {
-	dpkg		DPKGDataMgr
+type datamgr struct {
+	dpkg		dpkgdatamgr
 }
 
-var parser_cfg Config
-var datamgr DataMgr
+var parser_cfg config
+var dmgr datamgr
 
-func default_parser_config() Config {
-	cfg := Config{
+func default_parser_config() config {
+	cfg := config{
 		flag_debug: false,
 		// The maximum number of checks that can be run at any given
 		// time, not configurable at the moment but should be
@@ -35,20 +35,19 @@ func default_parser_config() Config {
 	return cfg
 }
 
-func (d *DataMgr) datamgr_init() {
+func (d *datamgr) datamgr_init() {
 	d.dpkg.init()
 }
 
-func (d *DataMgr) datamgr_run() {
+func (d *datamgr) datamgr_run(precognition bool) {
+	if precognition {
+		d.dpkg.prepare()
+	}
 	go d.dpkg.run()
 }
 
-func (d *DataMgr) datamgr_close() {
+func (d *datamgr) datamgr_close() {
 	close(d.dpkg.schan)
-}
-
-func (d *DataMgr) precognition() {
-	d.dpkg.prepare()
 }
 
 func Set_debug(f bool) {
@@ -63,13 +62,15 @@ func debug_prt(s string, args ...interface{}) {
 }
 
 func Execute(od *GOvalDefinitions) {
+	var precognition bool = false
 	debug_prt("Executing all applicable checks\n")
 
-	datamgr.datamgr_init()
-	datamgr.datamgr_run()
 	if parser_cfg.flag_debug {
-		datamgr.precognition()
+		precognition = true
 	}
+
+	dmgr.datamgr_init()
+	dmgr.datamgr_run(precognition)
 
 	results := make([]GOvalResult, 0)
 	reschan := make(chan GOvalResult)
@@ -98,11 +99,11 @@ func Execute(od *GOvalDefinitions) {
 			results = append(results, s)
 			curchecks--
 		}
-		go v.Evaluate(reschan)
+		go v.evaluate(reschan)
 		curchecks++
 	}
 
-	datamgr.datamgr_close()
+	dmgr.datamgr_close()
 }
 
 func Init() {
