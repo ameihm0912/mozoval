@@ -12,7 +12,7 @@ const (
 	OPMODE_RUN = 2
 )
 
-var cfg Config
+var cfg config
 
 func run_mode() {
 	od, ret := oval.Parse(cfg.flag_run)
