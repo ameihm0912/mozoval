@@ -18,14 +18,37 @@ type Config struct {
 	max_checks	int
 }
 
+type DataMgr struct {
+	dpkg		DPKGDataMgr
+}
+
 var parser_cfg Config
+var datamgr DataMgr
 
 func default_parser_config() Config {
 	cfg := Config{
 		flag_debug: false,
+		// The maximum number of checks that can be run at any given
+		// time, not configurable at the moment but should be
 		max_checks: 10,
 	}
 	return cfg
+}
+
+func (d *DataMgr) datamgr_init() {
+	d.dpkg.init()
+}
+
+func (d *DataMgr) datamgr_run() {
+	go d.dpkg.run()
+}
+
+func (d *DataMgr) datamgr_close() {
+	close(d.dpkg.schan)
+}
+
+func (d *DataMgr) precognition() {
+	d.dpkg.prepare()
 }
 
 func Set_debug(f bool) {
@@ -41,6 +64,12 @@ func debug_prt(s string, args ...interface{}) {
 
 func Execute(od *GOvalDefinitions) {
 	debug_prt("Executing all applicable checks\n")
+
+	datamgr.datamgr_init()
+	datamgr.datamgr_run()
+	if parser_cfg.flag_debug {
+		datamgr.precognition()
+	}
 
 	results := make([]GOvalResult, 0)
 	reschan := make(chan GOvalResult)
@@ -72,6 +101,8 @@ func Execute(od *GOvalDefinitions) {
 		go v.Evaluate(reschan)
 		curchecks++
 	}
+
+	datamgr.datamgr_close()
 }
 
 func Init() {
