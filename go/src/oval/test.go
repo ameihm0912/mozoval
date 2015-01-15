@@ -13,11 +13,18 @@ const (
 
 type generictest interface {
 	prepare(*GOvalDefinitions)
+	release()
 	execute(*GOvalDefinitions) bool
+}
+
+func (gt *GTest) release() {
+	gt.Unlock()
 }
 
 func (gt *GTest) prepare(od *GOvalDefinitions) {
 	var iface genericobj
+
+	gt.Lock()
 
 	//
 	// Prepare the object the test depends on, and return the state the

@@ -97,6 +97,7 @@ type GTest struct {
 	// Extended struct information, not used by XML parser but used during
 	// test evaluation
 	status		int
+	sync.Mutex
 }	
 
 type GRPMInfoTest struct {
