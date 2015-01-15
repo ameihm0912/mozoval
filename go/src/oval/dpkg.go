@@ -15,6 +15,7 @@ type dpkgresponse struct {
 type dpkgdatamgr struct {
 	schan		chan dpkgrequest
 	pkglist		[]dpkgpackage
+	prepared	bool
 }
 
 type dpkgpackage struct {
@@ -29,6 +30,7 @@ func (d *dpkgdatamgr) init() {
 
 func (d *dpkgdatamgr) prepare() {
 	d.pkglist = dpkg_get_packages()
+	d.prepared = true
 }
 
 func (d *dpkgdatamgr) run() {

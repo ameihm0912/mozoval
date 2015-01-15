@@ -30,7 +30,7 @@ func default_parser_config() config {
 		flag_debug: false,
 		// The maximum number of checks that can be run at any given
 		// time, not configurable at the moment but should be
-		max_checks: 10,
+		max_checks: 1,
 	}
 	return cfg
 }
@@ -99,7 +99,7 @@ func Execute(od *GOvalDefinitions) {
 			results = append(results, s)
 			curchecks--
 		}
-		go v.evaluate(reschan)
+		go v.evaluate(reschan, od)
 		curchecks++
 	}
 

@@ -46,12 +46,29 @@ type GCriteria struct {
 
 	Criterion	[]GCriterion	`xml:"criterion"`
 	Criteria	[]GCriteria	`xml:"criteria"`
+
+	ExtendDef	[]GExtendDefinition	`xml:"extend_definition"`
+
+	// Extended struct information, not used by XML parser but used during
+	// criteria evaluation
+	status		int
 }
 
 type GCriterion struct {
 	XMLName		xml.Name	`xml:"criterion"`
 
 	Test		string		`xml:"test_ref,attr"`
+	Comment		string		`xml:"comment,attr"`
+
+	// Extended struct information, not used by XML parser but used during
+	// criteria evaluation
+	status		int
+}
+
+type GExtendDefinition struct {
+	XMLName		xml.Name	`xml:"extend_definition"`
+
+	Test		string		`xml:"definition_ref,attr"`
 	Comment		string		`xml:"comment,attr"`
 }
 
