@@ -63,17 +63,25 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) {
 }
 
 func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
+	var tiface generictest
+
 	debug_prt("[criterion] %v\n", gc.Comment)
 
 	r := p.get_test(gc.Test)
 	if r == nil {
 		debug_prt("[criterion] can't locate test %s\n", gc.Test)
+		gc.status = CRITERIA_ERROR
 		return
 	}
 	switch reflect.TypeOf(r) {
 	case reflect.TypeOf(&GRPMInfoTest{}):
-	case reflect.TypeOf(&DPKGInfoTest{}):
+		v := r.(*GRPMInfoTest)
+		tiface = v
+	case reflect.TypeOf(&GDPKGInfoTest{}):
+		v := r.(*GDPKGInfoTest)
+		tiface = v
 	default:
 		debug_prt("[criterion] unhandled test struct %v\n", reflect.TypeOf(r))
 	}
+	tiface.prepare(p)
 }

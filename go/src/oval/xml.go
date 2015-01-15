@@ -92,6 +92,10 @@ type GTest struct {
 	ID		string		`xml:"id,attr"`
 	Object		GTestObject	`xml:"object"`
 	State		GTestState	`xml:"state"`
+
+	// Extended struct information, not used by XML parser but used during
+	// test evaluation
+	status		int
 }	
 
 type GRPMInfoTest struct {
