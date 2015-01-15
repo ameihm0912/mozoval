@@ -122,6 +122,7 @@ type GObjects struct {
 	XMLName		xml.Name	`xml:"http://oval.mitre.org/XMLSchema/oval-definitions-5 objects"`
 
 	RPMInfoObjects	[]GRPMInfoObj	`xml:"rpminfo_object"`
+	DPKGInfoObjects []GDPKGInfoObj	`xml:"dpkginfo_object"`
 }
 
 type GObject struct {
