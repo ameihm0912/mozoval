@@ -41,6 +41,7 @@ func main() {
 	flag.BoolVar(&cfg.flag_debug, "d", false, "enable debugging")
 	flag.StringVar(&cfg.flag_list, "l", "path", "list checks")
 	flag.StringVar(&cfg.flag_run, "r", "path", "run checks")
+	flag.IntVar(&cfg.max_checks, "n", 10, "concurrent checks")
 	if len(os.Args) < 2 {
 		flag.Usage()
 		os.Exit(2)
@@ -69,6 +70,7 @@ func main() {
 		oval.Set_debug(true)
 		debug_prt("Debugging enabled\n")
 	}
+	oval.Set_max_checks(cfg.max_checks)
 
 	switch opmode {
 	case OPMODE_LIST:

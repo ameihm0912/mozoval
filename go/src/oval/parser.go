@@ -29,8 +29,8 @@ func default_parser_config() config {
 	cfg := config{
 		flag_debug: false,
 		// The maximum number of checks that can be run at any given
-		// time, not configurable at the moment but should be
-		max_checks: 1,
+		// time
+		max_checks: 10,
 	}
 	return cfg
 }
@@ -52,6 +52,10 @@ func (d *datamgr) datamgr_close() {
 
 func Set_debug(f bool) {
 	parser_cfg.flag_debug = f
+}
+
+func Set_max_checks(i int) {
+	parser_cfg.max_checks = i
 }
 
 func debug_prt(s string, args ...interface{}) {
