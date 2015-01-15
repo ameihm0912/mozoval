@@ -85,7 +85,7 @@ type GTests struct {
 	XMLName		xml.Name	`xml:"http://oval.mitre.org/XMLSchema/oval-definitions-5 tests"`
 
 	RPMInfoTests	[]GRPMInfoTest	`xml:"rpminfo_test"`
-	DPKGInfoTests	[]DPKGInfoTest	`xml:"dpkginfo_test"`
+	DPKGInfoTests	[]GDPKGInfoTest	`xml:"dpkginfo_test"`
 }
 
 type GTest struct {
@@ -99,7 +99,7 @@ type GRPMInfoTest struct {
 	GTest
 }
 
-type DPKGInfoTest struct {
+type GDPKGInfoTest struct {
 	XMLName		xml.Name	`xml:"dpkginfo_test"`
 	GTest
 }
@@ -131,6 +131,12 @@ type GObject struct {
 
 type GRPMInfoObj struct {
 	XMLName		xml.Name	`xml:"rpminfo_object"`
+	GObject
+	Name		string		`xml:"name"`
+}
+
+type GDPKGInfoObj struct {
+	XMLName		xml.Name	`xml:"dpkginfo_object"`
 	GObject
 	Name		string		`xml:"name"`
 }
