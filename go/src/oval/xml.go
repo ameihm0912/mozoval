@@ -2,6 +2,7 @@ package oval
 
 import (
 	"encoding/xml"
+	"sync"
 )
 
 type GOvalDefinitions struct {
@@ -30,6 +31,10 @@ type GDefinition struct {
 	ID		string		`xml:"id,attr"`
 	Version		string		`xml:"version,attr"`
 	Class		string		`xml:"class,attr"`
+
+	// Extended struct information, not used by XML parser but used during
+	// definition evaluation
+	sync.Mutex
 }
 
 type GDefinitionMeta struct {

@@ -12,6 +12,9 @@ func (od GOvalDefinitions) get_definition(s string) *GDefinition {
 
 func (od GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
 	var ret GOvalResult
+
+	od.Lock()
+
 	debug_prt("[evaluate] %s\n", od.ID)
 
 	// Evaluate the root criteria item, this could result in recursion
@@ -23,4 +26,6 @@ func (od GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
 	if ch != nil {
 		ch <- ret
 	}
+
+	od.Unlock()
 }
