@@ -85,6 +85,7 @@ type GTests struct {
 	XMLName		xml.Name	`xml:"http://oval.mitre.org/XMLSchema/oval-definitions-5 tests"`
 
 	RPMInfoTests	[]GRPMInfoTest	`xml:"rpminfo_test"`
+	DPKGInfoTests	[]DPKGInfoTest	`xml:"dpkginfo_test"`
 }
 
 type GTest struct {
@@ -95,6 +96,11 @@ type GTest struct {
 
 type GRPMInfoTest struct {
 	XMLName		xml.Name	`xml:"rpminfo_test"`
+	GTest
+}
+
+type DPKGInfoTest struct {
+	XMLName		xml.Name	`xml:"dpkginfo_test"`
 	GTest
 }
 
