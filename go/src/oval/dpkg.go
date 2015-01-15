@@ -23,6 +23,10 @@ type dpkgpackage struct {
 	version		string
 }
 
+func (d *GDPKGInfoTest) execute(od *GOvalDefinitions) bool {
+	return false
+}
+
 func (d *GDPKGInfoObj) prepare() {
 }
 

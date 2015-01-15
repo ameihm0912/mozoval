@@ -6,17 +6,17 @@ import (
 
 const (
 	_ = iota
-	CRITERIA_PASS
-	CRITERIA_FAIL
+	CRITERIA_TRUE
+	CRITERIA_FALSE
 	CRITERIA_ERROR
 )
 
 func (gc *GCriteria) status_string() string {
 	switch gc.status {
-	case CRITERIA_PASS:
-		return "pass"
-	case CRITERIA_FAIL:
-		return "fail"
+	case CRITERIA_TRUE:
+		return "true"
+	case CRITERIA_FALSE:
+		return "false"
 	case CRITERIA_ERROR:
 		return "error"
 	}
@@ -64,6 +64,7 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) {
 
 func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 	var tiface generictest
+	var result bool
 
 	debug_prt("[criterion] %v\n", gc.Comment)
 
@@ -88,5 +89,12 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 		gc.status = CRITERIA_ERROR
 		return
 	}
+
 	tiface.prepare(p)
+	result = tiface.execute(p)
+	if result {
+		gc.status = CRITERIA_TRUE
+	} else {
+		gc.status = CRITERIA_FALSE
+	}
 }

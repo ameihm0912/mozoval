@@ -13,13 +13,15 @@ const (
 
 type generictest interface {
 	prepare(*GOvalDefinitions)
+	execute(*GOvalDefinitions) bool
 }
 
 func (gt *GTest) prepare(od *GOvalDefinitions) {
 	var iface genericobj
 
 	//
-	// Prepare the object the test depends on
+	// Prepare the object the test depends on, and return the state the
+	// test applies to
 	//
 	v := od.get_object(gt.Object.ObjectRef)
 	if v == nil {
