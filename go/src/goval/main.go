@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	OPMODE_LIST = 1
-	OPMODE_RUN = 2
+	_ = iota
+	OPMODE_LIST
+	OPMODE_RUN
 )
 
 var cfg config
