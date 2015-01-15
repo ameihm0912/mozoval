@@ -91,6 +91,7 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 	}
 
 	tiface.prepare(p)
+
 	result = tiface.execute(p)
 	if result {
 		gc.status = CRITERIA_TRUE

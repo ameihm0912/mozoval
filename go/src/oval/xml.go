@@ -170,6 +170,7 @@ type GStates struct {
 	XMLName		xml.Name	`xml:"http://oval.mitre.org/XMLSchema/oval-definitions-5 states"`
 
 	RPMInfoStates	[]GRPMInfoState	`xml:"rpminfo_state"`
+	TFC54States	[]GTFC54State	`xml:"textfilecontent54_state"`
 }
 
 type GState struct {
@@ -177,6 +178,12 @@ type GState struct {
 	Version		string		`xml:"version,attr"`
 	VersionCheck	GVersionCheck	`xml:"version"`
 	EVRCheck	GEVRCheck	`xml:"evr"`
+	SubExpression	string		`xml:"subexpression"`
+}
+
+type GTFC54State struct {
+	XMLName		xml.Name	`xml:"textfilecontent54_state"`
+	GState
 }
 
 type GRPMInfoState struct {

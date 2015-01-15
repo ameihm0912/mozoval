@@ -6,6 +6,11 @@ func (od *GOvalDefinitions) get_state(s string) interface{} {
 			return &x
 		}
 	}
+	for _, x := range od.States.TFC54States {
+		if x.ID == s {
+			return &x
+		}
+	}
 
 	return nil
 }
