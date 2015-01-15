@@ -23,6 +23,9 @@ type dpkgpackage struct {
 	version		string
 }
 
+func (d *GDPKGInfoObj) prepare() {
+}
+
 func (d *dpkgdatamgr) init() {
 	debug_prt("Initializing dpkg data manager\n")
 	d.schan = make(chan dpkgrequest)
