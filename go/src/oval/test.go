@@ -34,7 +34,13 @@ func (gt *GTest) prepare(od *GOvalDefinitions) {
 	case reflect.TypeOf(&GDPKGInfoObj{}):
 		r := v.(*GDPKGInfoObj)
 		iface = r
+	case reflect.TypeOf(&GTFC54Obj{}):
+		r := v.(*GTFC54Obj)
+		iface = r
 	default:
+		debug_prt("[test] unhandled object struct %v\n", reflect.TypeOf(v))
+		gt.status = TEST_ERROR
+		return
 	}
 	iface.prepare()
 }
@@ -46,6 +52,11 @@ func (od *GOvalDefinitions) get_test(s string) interface{} {
 		}
 	}
 	for _, x := range od.Tests.DPKGInfoTests {
+		if x.ID == s {
+			return &x
+		}
+	}
+	for _, x := range od.Tests.TFC54Tests {
 		if x.ID == s {
 			return &x
 		}

@@ -80,8 +80,13 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 	case reflect.TypeOf(&GDPKGInfoTest{}):
 		v := r.(*GDPKGInfoTest)
 		tiface = v
+	case reflect.TypeOf(&GTFC54Test{}):
+		v := r.(*GTFC54Test)
+		tiface = v
 	default:
 		debug_prt("[criterion] unhandled test struct %v\n", reflect.TypeOf(r))
+		gc.status = CRITERIA_ERROR
+		return
 	}
 	tiface.prepare(p)
 }

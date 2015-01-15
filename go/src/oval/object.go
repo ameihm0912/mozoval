@@ -15,6 +15,11 @@ func (od *GOvalDefinitions) get_object(s string) interface{} {
 			return &x
 		}
 	}
+	for _, x := range od.Objects.TFC54Objects {
+		if x.ID == s {
+			return &x
+		}
+	}
 
 	return nil
 }

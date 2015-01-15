@@ -86,6 +86,7 @@ type GTests struct {
 
 	RPMInfoTests	[]GRPMInfoTest	`xml:"rpminfo_test"`
 	DPKGInfoTests	[]GDPKGInfoTest	`xml:"dpkginfo_test"`
+	TFC54Tests	[]GTFC54Test	`xml:"textfilecontent54_test"`
 }
 
 type GTest struct {
@@ -108,6 +109,11 @@ type GDPKGInfoTest struct {
 	GTest
 }
 
+type GTFC54Test struct {
+	XMLName		xml.Name	`xml:"textfilecontent54_test"`
+	GTest
+}
+
 type GTestObject struct {
 	XMLName		xml.Name	`xml:"object"`
 	ObjectRef	string		`xml:"object_ref,attr"`
@@ -127,6 +133,7 @@ type GObjects struct {
 
 	RPMInfoObjects	[]GRPMInfoObj	`xml:"rpminfo_object"`
 	DPKGInfoObjects []GDPKGInfoObj	`xml:"dpkginfo_object"`
+	TFC54Objects	[]GTFC54Obj	`xml:"textfilecontent54_object"`
 }
 
 type GObject struct {
@@ -144,6 +151,15 @@ type GDPKGInfoObj struct {
 	XMLName		xml.Name	`xml:"dpkginfo_object"`
 	GObject
 	Name		string		`xml:"name"`
+}
+
+type GTFC54Obj struct {
+	XMLName		xml.Name	`xml:"textfilecontent54_object"`
+	GObject
+	Path		string		`xml:"path"`
+	Filename	string		`xml:"filename"`
+	Filepath	string		`xml:"filepath"`
+	Pattern		string		`xml:"pattern"`
 }
 
 //
