@@ -170,8 +170,9 @@ type GTFC54Obj struct {
 type GStates struct {
 	XMLName xml.Name `xml:"http://oval.mitre.org/XMLSchema/oval-definitions-5 states"`
 
-	RPMInfoStates []GRPMInfoState `xml:"rpminfo_state"`
-	TFC54States   []GTFC54State   `xml:"textfilecontent54_state"`
+	RPMInfoStates  []GRPMInfoState  `xml:"rpminfo_state"`
+	TFC54States    []GTFC54State    `xml:"textfilecontent54_state"`
+	DPKGInfoStates []GDPKGInfoState `xml:"dpkginfo_state"`
 }
 
 type GState struct {

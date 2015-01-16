@@ -11,6 +11,11 @@ func (od *GOvalDefinitions) get_state(s string) interface{} {
 			return &x
 		}
 	}
+	for _, x := range od.States.DPKGInfoStates {
+		if x.ID == s {
+			return &x
+		}
+	}
 
 	return nil
 }
