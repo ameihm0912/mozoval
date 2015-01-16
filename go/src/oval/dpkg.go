@@ -60,6 +60,14 @@ func (state *GDPKGInfoState) evaluate(obj *GDPKGInfoObj) bool {
 	}
 	debug_prt("[dpkginfo_state] %v installed, %v\n", resp.pkgdata.name, resp.pkgdata.version)
 
+	if len(state.EVRCheck.Value) > 0 {
+		evrop := evr_lookup_operation(state.EVRCheck.Operation)
+		if evrop == EVROP_UNKNOWN {
+			return false
+		}
+		evr_compare(evrop, resp.pkgdata.version, state.EVRCheck.Value)
+	}
+
 	return false
 }
 
