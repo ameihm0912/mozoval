@@ -1,25 +1,26 @@
 package oval
 
 import (
+	"encoding/xml"
 	"fmt"
 	"os"
-	"encoding/xml"
 )
 
 type ParserError struct {
 	s string
 }
+
 func (pe *ParserError) Error() string {
 	return pe.s
 }
 
 type config struct {
-	flag_debug	bool
-	max_checks	int
+	flag_debug bool
+	max_checks int
 }
 
 type datamgr struct {
-	dpkg		dpkgdatamgr
+	dpkg dpkgdatamgr
 }
 
 var parser_cfg config
@@ -85,7 +86,7 @@ func Execute(od *GOvalDefinitions) {
 		for {
 			nodata := false
 			select {
-			case s := <- reschan:
+			case s := <-reschan:
 				results = append(results, s)
 				curchecks--
 			default:
@@ -99,7 +100,7 @@ func Execute(od *GOvalDefinitions) {
 
 		if curchecks == parser_cfg.max_checks {
 			// Block and wait for a free slot
-			s := <- reschan
+			s := <-reschan
 			results = append(results, s)
 			curchecks--
 		}

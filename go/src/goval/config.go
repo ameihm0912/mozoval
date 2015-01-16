@@ -1,10 +1,10 @@
 package main
 
 type config struct {
-	flag_debug	bool
-	flag_list	string
-	flag_run	string
-	max_checks	int
+	flag_debug bool
+	flag_list  string
+	flag_run   string
+	max_checks int
 }
 
 func default_config() config {

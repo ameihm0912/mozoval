@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"os"
 	"oval"
 )
@@ -49,10 +49,10 @@ func main() {
 	flag.Parse()
 
 	var validmode bool = false
-	if (cfg.flag_list != "path") {
+	if cfg.flag_list != "path" {
 		opmode = OPMODE_LIST
 		validmode = true
-	} else if (cfg.flag_run != "path") {
+	} else if cfg.flag_run != "path" {
 		opmode = OPMODE_RUN
 		validmode = true
 	}
@@ -63,7 +63,7 @@ func main() {
 
 	oval.Init()
 
-	if (cfg.flag_debug) {
+	if cfg.flag_debug {
 		set_debug(true)
 		// If we enable debugging on the command line, also turn it on
 		// in the OVAL library
