@@ -6,24 +6,43 @@ import (
 )
 
 type dpkgrequest struct {
-	out		chan dpkgresponse
+	out chan dpkgresponse
 }
 
 type dpkgresponse struct {
 }
 
 type dpkgdatamgr struct {
-	schan		chan dpkgrequest
-	pkglist		[]dpkgpackage
-	prepared	bool
+	schan    chan dpkgrequest
+	pkglist  []dpkgpackage
+	prepared bool
 }
 
 type dpkgpackage struct {
-	name		string
-	version		string
+	name    string
+	version string
 }
 
-func (d *GDPKGInfoTest) execute(od *GOvalDefinitions) bool {
+func (obj *GDPKGInfoTest) execute(od *GOvalDefinitions) bool {
+	v := od.get_object(obj.Object.ObjectRef)
+	if v == nil {
+		// This should never happen as if the object doesnt exist we
+		// would have seen that during preparation
+		panic("unknown object in test execution!")
+	}
+	// XXX We should validate the object type here
+	o := v.(*GDPKGInfoObj)
+
+	s := od.get_state(obj.State.StateRef)
+	if s == nil {
+		panic("unknown state in test execution!")
+	}
+	state := s.(*GDPKGInfoState)
+
+	return state.evaluate(o)
+}
+
+func (state *GDPKGInfoState) evaluate(obj *GDPKGInfoObj) bool {
 	return false
 }
 
@@ -44,7 +63,7 @@ func (d *dpkgdatamgr) run() {
 	debug_prt("Starting dpkg data manager\n")
 
 	for {
-		_, ok := <- d.schan
+		_, ok := <-d.schan
 		if ok == false {
 			debug_prt("Stopping dpkg data manager\n")
 			return
