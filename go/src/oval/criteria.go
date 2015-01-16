@@ -94,8 +94,10 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 
 	result = tiface.execute(p)
 	if result {
+		debug_prt("[criterion] TRUE\n")
 		gc.status = CRITERIA_TRUE
 	} else {
+		debug_prt("[criterion] FALSE\n")
 		gc.status = CRITERIA_FALSE
 	}
 }
