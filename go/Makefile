@@ -1,4 +1,4 @@
-PROJS = oval goval
+PROJS = oval goval goval-evrtest
 
 all: $(PROJS)
 
@@ -8,6 +8,9 @@ oval:
 
 goval:
 	go install goval
+
+goval-evrtest:
+	go install goval-evrtest
 
 clean:
 	rm -f bin/goval

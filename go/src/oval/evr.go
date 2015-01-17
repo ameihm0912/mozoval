@@ -9,6 +9,7 @@ import (
 const (
 	_ = iota
 	EVROP_LESS_THAN
+	EVROP_EQUALS
 	EVROP_UNKNOWN
 )
 
@@ -24,6 +25,8 @@ func evr_operation_str(val int) string {
 	switch val {
 	case EVROP_LESS_THAN:
 		return "<"
+	case EVROP_EQUALS:
+		return "="
 	default:
 		return "?"
 	}
@@ -164,4 +167,8 @@ func evr_compare(op int, actual string, check string) bool {
 	debug_prt("[evr_compare] res_epoch=%v\n", res_epoch)
 
 	return false
+}
+
+func Test_evr_compare(op int, actual string, check string) bool {
+	return evr_compare(op, actual, check)
 }
