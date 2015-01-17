@@ -107,25 +107,34 @@ func evr_v_compare(actual string, check string) int {
 	ret := 0
 	for x, actdash := range dashbuf_actual {
 		if x >= len(dashbuf_check) {
+			// The actual string has more dash components then the
+			// comparison string does, return what we have so far
+			// and ignore the rest
 			return ret
 		}
+		// sigma represents the component of the dash buffer from the
+		// check value for this cycle
 		sigma := dashbuf_check[x]
 
 		dot_act := strings.Split(actdash, ".")
 		dot_sig := strings.Split(sigma, ".")
 
+		// Loop through each dot component in the version string;
+		// regular integer values are handled simply, if the component
+		// has other types of characters we pass them off to extended
+		// handling functions
 		for y, actdot := range dot_act {
 			if y >= len(dot_sig) {
 				// There are more version components in this
-				// string then in the check version, return
-				// greater
+				// string then in the check version, treat this
+				// as greater if we have gotten this far
 				return 1
 			}
 			ai, err_a := strconv.Atoi(actdot)
 			ci, err_c := strconv.Atoi(dot_sig[y])
 
 			// If the conversion failed for either one, try a few
-			// other methods
+			// other extended comparison methods for the component
 			extend := true
 			if err_a != nil || err_c != nil {
 				extend = false
@@ -138,15 +147,19 @@ func evr_v_compare(actual string, check string) int {
 				}
 			}
 			if !extend {
-				panic("evr_v_compare: comparison and extended methods failed")
+				panic("evr_v_compare: conversion and extended methods failed")
 			}
 
 			if ai > ci {
 				return 1
+			} else if ai < ci {
+				return -1
 			}
+			// Otherwise the components were equal, continue on with the next
+			// one
 		}
 	}
-	return 0
+	return ret
 }
 
 func evr_r_compare(actual string, check string) int {
@@ -162,10 +175,41 @@ func evr_compare(op int, actual string, check string) bool {
 	c_e, c_v, c_r := evr_extract(check)
 
 	res_epoch := evr_e_compare(a_e, c_e)
-	_ = evr_v_compare(a_v, c_v)
-	_ = evr_r_compare(a_r, c_r)
-	debug_prt("[evr_compare] res_epoch=%v\n", res_epoch)
+	res_version := evr_v_compare(a_v, c_v)
+	res_release := evr_r_compare(a_r, c_r)
+	debug_prt("[evr_compare] [%v:%v:%v] \n", res_epoch, res_version, res_release)
 
+	switch op {
+	case EVROP_EQUALS:
+		if res_epoch == 0 &&
+			res_version == 0 &&
+			res_release == 0 {
+			return true
+		}
+		return false
+	case EVROP_LESS_THAN:
+		switch res_epoch {
+		case -1:
+			return true
+		case 1:
+			return false
+		}
+		switch res_version {
+		case -1:
+			return true
+		case 1:
+			return false
+		}
+		switch res_release {
+		case -1:
+			return true
+		case 1:
+			return false
+		}
+		return false
+	default:
+		panic("unknown evr comparison operation")
+	}
 	return false
 }
 

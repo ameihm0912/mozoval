@@ -27,6 +27,9 @@ func main() {
 	scanner := bufio.NewScanner(fd)
 	for scanner.Scan() {
 		buf := strings.TrimSpace(scanner.Text())
+		if len(buf) == 0 {
+			continue
+		}
 		fmt.Printf("%v\n", buf)
 
 		var opmode int
