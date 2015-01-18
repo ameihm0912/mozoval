@@ -92,8 +92,22 @@ func evr_e_compare(actual string, check string) int {
 // Compare a component of a version string containing an integer followed
 // by a character
 //
-func evr_v_compare_numalpha(actual string, check string) (string, string, bool) {
-	return "", "", true
+func evr_v_compare_numalpha(actual string, check string) (int, bool) {
+	abuf := strings.Split(actual, "")
+	cbuf := strings.Split(check, "")
+	for i, v := range cbuf {
+		if i > len(actual) {
+			// The check version component has more elements then
+			// the actual, return greater
+			return 1, true
+		}
+		if v > abuf[i] {
+			return -1, true
+		} else if v < abuf[i] {
+			return 1, true
+		}
+	}
+	return 0, true
 }
 
 func evr_v_compare(actual string, check string) int {
@@ -138,11 +152,13 @@ func evr_v_compare(actual string, check string) int {
 			extend := true
 			if err_a != nil || err_c != nil {
 				extend = false
-				ai, ci, valid := evr_v_compare_numalpha(actdot, dot_sig[y])
+				status, valid := evr_v_compare_numalpha(actdot, dot_sig[y])
 				if valid {
 					extend = true
-					if ai > ci {
+					if status > 0 {
 						return 1
+					} else if status < 0 {
+						return -1
 					}
 				}
 			}
