@@ -96,7 +96,7 @@ func evr_v_compare_numalpha(actual string, check string) (int, bool) {
 	abuf := strings.Split(actual, "")
 	cbuf := strings.Split(check, "")
 	for i, v := range cbuf {
-		if i > len(actual) {
+		if i >= len(actual) {
 			// The check version component has more elements then
 			// the actual, return greater
 			return 1, true
@@ -119,40 +119,40 @@ func evr_v_compare(actual string, check string) int {
 	dashbuf_check := strings.Split(check, "-")
 
 	ret := 0
-	for x, actdash := range dashbuf_actual {
-		if x >= len(dashbuf_check) {
+	for x, checkdash := range dashbuf_check {
+		if x >= len(dashbuf_actual) {
 			// The actual string has more dash components then the
 			// comparison string does, return what we have so far
 			// and ignore the rest
 			return ret
 		}
 		// sigma represents the component of the dash buffer from the
-		// check value for this cycle
-		sigma := dashbuf_check[x]
+		// actual value for this cycle
+		sigma := dashbuf_actual[x]
 
-		dot_act := strings.Split(actdash, ".")
+		dot_check := strings.Split(checkdash, ".")
 		dot_sig := strings.Split(sigma, ".")
 
 		// Loop through each dot component in the version string;
 		// regular integer values are handled simply, if the component
 		// has other types of characters we pass them off to extended
 		// handling functions
-		for y, actdot := range dot_act {
+		for y, checkdot := range dot_check {
 			if y >= len(dot_sig) {
 				// There are more version components in this
 				// string then in the check version, treat this
 				// as greater if we have gotten this far
 				return 1
 			}
-			ai, err_a := strconv.Atoi(actdot)
-			ci, err_c := strconv.Atoi(dot_sig[y])
+			ci, err_a := strconv.Atoi(checkdot)
+			ai, err_c := strconv.Atoi(dot_sig[y])
 
 			// If the conversion failed for either one, try a few
 			// other extended comparison methods for the component
 			extend := true
 			if err_a != nil || err_c != nil {
 				extend = false
-				status, valid := evr_v_compare_numalpha(actdot, dot_sig[y])
+				status, valid := evr_v_compare_numalpha(dot_sig[y], checkdot)
 				if valid {
 					extend = true
 					if status > 0 {
