@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -12,6 +13,12 @@ const (
 	EVROP_EQUALS
 	EVROP_UNKNOWN
 )
+
+type EVR struct {
+	epoch   string
+	version string
+	release string
+}
 
 func evr_lookup_operation(s string) int {
 	switch s {
@@ -32,201 +39,157 @@ func evr_operation_str(val int) string {
 	}
 }
 
-// Asset an epoch is present within a version string, if not a modified
-// string is returned including a default epoch value (0)
-func evr_epoch_assert(s string) string {
-	f, _ := regexp.MatchString("^\\d+\\:", s)
-	if !f {
-		return "0:" + s
-	}
-	return s
+func evr_isdigit(c rune) bool {
+	return unicode.IsDigit(c)
 }
 
-func evr_extract(s string) (string, string, string) {
-	var epoch string
-	var version string
-	var release string
+func evr_extract(s string) EVR {
+	var ret EVR
+	var idx int
 
-	s0 := strings.Split(s, ":")
-	if len(s0) < 2 {
-		panic("evr_extract: can't extract epoch")
-	}
-	epoch = s0[0]
-
-	// If we have a + character in the vr component, we treat this as a
-	// dpkg style package, otherwise rpm
-	if strings.Contains(s0[1], "+") {
-		s0 = strings.Split(s0[1], "+")
-		if len(s0) < 2 {
-			panic("evr_extract: + tokenize failure")
+	for _, c := range s {
+		if !evr_isdigit(c) {
+			break
 		}
-		version = s0[0]
-		release = s0[1]
+		idx++
+	}
+
+	if idx >= len(s) {
+		panic("evr_extract: all digits")
+	}
+
+	if s[idx] == ':' {
+		ret.epoch = s[:idx]
 	} else {
-		version = s0[1]
-		release = ""
+		ret.epoch = "0"
 	}
 
-	debug_prt("[evr_extract] epoch=%v, version=%v, revision=%v\n", epoch, version, release)
-	return epoch, version, release
-}
+	idx++
+	if idx >= len(s) {
+		panic("evr_extract: only epoch")
+	}
+	remain := s[idx:]
 
-func evr_e_compare(actual string, check string) int {
-	ai, err := strconv.Atoi(actual)
-	if err != nil {
-		panic("evr_e_compare: atoi actual")
-	}
-	ci, err := strconv.Atoi(check)
-	if err != nil {
-		panic("evr_e_compare: atoi actual")
-	}
-	if ai > ci {
-		return 1
-	} else if ai < ci {
-		return -1
-	}
-	return 0
-}
-
-//
-// Compare a component of a version string containing an integer followed
-// by a character
-//
-func evr_v_compare_numalpha(actual string, check string) (int, bool) {
-	abuf := strings.Split(actual, "")
-	cbuf := strings.Split(check, "")
-	for i, v := range cbuf {
-		if i >= len(actual) {
-			// The check version component has more elements then
-			// the actual, return greater
-			return 1, true
+	rp0 := strings.LastIndex(remain, "-")
+	if rp0 != -1 {
+		ret.version = remain[:rp0]
+		rp0++
+		if rp0 >= len(remain) {
+			panic("evr_extract: ends in dash")
 		}
-		if v > abuf[i] {
-			return -1, true
-		} else if v < abuf[i] {
-			return 1, true
-		}
+		ret.release = remain[rp0:]
+	} else {
+		ret.version = remain
+		ret.release = ""
 	}
-	return 0, true
-}
 
-func evr_v_compare(actual string, check string) int {
-	if len(actual) == 0 || len(check) == 0 {
-		panic("evr_v_compare: empty version string")
-	}
-	debug_prt("[evr_v_compare] %v %v\n", actual, check)
-	dashbuf_actual := strings.Split(actual, "-")
-	dashbuf_check := strings.Split(check, "-")
-
-	ret := 0
-	for x, checkdash := range dashbuf_check {
-		if x >= len(dashbuf_actual) {
-			// The actual string has more dash components then the
-			// comparison string does, return what we have so far
-			// and ignore the rest
-			return ret
-		}
-		// sigma represents the component of the dash buffer from the
-		// actual value for this cycle
-		sigma := dashbuf_actual[x]
-
-		dot_check := strings.Split(checkdash, ".")
-		dot_sig := strings.Split(sigma, ".")
-
-		// Loop through each dot component in the version string;
-		// regular integer values are handled simply, if the component
-		// has other types of characters we pass them off to extended
-		// handling functions
-		for y, checkdot := range dot_check {
-			if y >= len(dot_sig) {
-				// There are more version components in this
-				// string then in the check version, treat this
-				// as greater if we have gotten this far
-				return 1
-			}
-			ci, err_a := strconv.Atoi(checkdot)
-			ai, err_c := strconv.Atoi(dot_sig[y])
-
-			// If the conversion failed for either one, try a few
-			// other extended comparison methods for the component
-			extend := true
-			if err_a != nil || err_c != nil {
-				extend = false
-				status, valid := evr_v_compare_numalpha(dot_sig[y], checkdot)
-				if valid {
-					extend = true
-					if status > 0 {
-						return 1
-					} else if status < 0 {
-						return -1
-					}
-				}
-			}
-			if !extend {
-				panic("evr_v_compare: conversion and extended methods failed")
-			}
-
-			if ai > ci {
-				return 1
-			} else if ai < ci {
-				return -1
-			}
-			// Otherwise the components were equal, continue on with the next
-			// one
-		}
-	}
+	debug_prt("[evr_extract] epoch=%v, version=%v, revision=%v\n",
+		ret.epoch, ret.version, ret.release)
 	return ret
 }
 
-func evr_r_compare(actual string, check string) int {
+func evr_rpmtokenizer(s string) []string {
+	re := regexp.MustCompile("[A-Za-z0-9]+")
+	return re.FindAllString(s, -1)
+}
+
+func evr_trimzeros(s string) string {
+	if len(s) == 1 {
+		return s
+	}
+	_, err := strconv.Atoi(s)
+	if err != nil {
+		return s
+	}
+	return strings.TrimLeft(s, "0")
+}
+
+func evr_rpmvercmp(actual string, check string) int {
+	if actual == check {
+		return 0
+	}
+
+	acttokens := evr_rpmtokenizer(actual)
+	chktokens := evr_rpmtokenizer(check)
+
+	for i := range chktokens {
+		if i >= len(acttokens) {
+			// There are more tokens in the check value, the
+			// check wins
+			return 1
+		}
+
+		// If the values are pure numbers, trim any leading 0's
+		acttest := evr_trimzeros(acttokens[i])
+		chktest := evr_trimzeros(chktokens[i])
+
+		// Do a lexical string comparison here, this should work
+		// even with pure integer values
+		if chktest > acttest {
+			return 1
+		} else if chktest < acttest {
+			return -1
+		}
+	}
+
+	// If we get this far, see if the actual value still has more tokens
+	// for comparison, if so actual wins
+	if len(acttokens) > len(chktokens) {
+		return -1
+	}
+
+	return 0
+}
+
+func evr_rpmcompare(actual EVR, check EVR) int {
+	aepoch, err := strconv.Atoi(actual.epoch)
+	if err != nil {
+		panic("evr_rpmcompare: bad actual epoch")
+	}
+	cepoch, err := strconv.Atoi(check.epoch)
+	if err != nil {
+		panic("evr_rpmcompare: bad check epoch")
+	}
+	if cepoch > aepoch {
+		return 1
+	} else if cepoch < aepoch {
+		return -1
+	}
+
+	ret := evr_rpmvercmp(actual.version, check.version)
+	if ret != 0 {
+		return ret
+	}
+
+	ret = evr_rpmvercmp(actual.release, check.release)
+	if ret != 0 {
+		return ret
+	}
+
 	return 0
 }
 
 func evr_compare(op int, actual string, check string) bool {
-	debug_prt("[evr_compare] %v %v %v\n", actual, evr_operation_str(op), check)
+	debug_prt("[evr_compare] %v %v %v\n", actual, evr_operation_str(op),
+		check)
 
-	actual = evr_epoch_assert(actual)
-	check = evr_epoch_assert(check)
-	a_e, a_v, a_r := evr_extract(actual)
-	c_e, c_v, c_r := evr_extract(check)
+	evract := evr_extract(actual)
+	evrchk := evr_extract(check)
 
-	res_epoch := evr_e_compare(a_e, c_e)
-	res_version := evr_v_compare(a_v, c_v)
-	res_release := evr_r_compare(a_r, c_r)
-	debug_prt("[evr_compare] [%v:%v:%v] \n", res_epoch, res_version, res_release)
-
+	ret := evr_rpmcompare(evract, evrchk)
 	switch op {
 	case EVROP_EQUALS:
-		if res_epoch == 0 &&
-			res_version == 0 &&
-			res_release == 0 {
-			return true
+		if ret != 0 {
+			return false
 		}
-		return false
+		return true
 	case EVROP_LESS_THAN:
-		switch res_epoch {
-		case -1:
-			return true
-		case 1:
+		if ret != 1 {
 			return false
 		}
-		switch res_version {
-		case -1:
-			return true
-		case 1:
-			return false
-		}
-		switch res_release {
-		case -1:
-			return true
-		case 1:
-			return false
-		}
-		return false
-	default:
-		panic("unknown evr comparison operation")
+		return true
 	}
-	return false
+	panic("evr_compare: unknown operator")
 }
 
 func Test_evr_compare(op int, actual string, check string) bool {
