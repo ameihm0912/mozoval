@@ -19,6 +19,7 @@ func run_mode() {
 	od, ret := oval.Parse(cfg.flag_run)
 	if ret != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", ret)
+		os.Exit(1)
 	}
 	oval.Execute(od)
 }
@@ -27,6 +28,7 @@ func list_mode() {
 	od, ret := oval.Parse(cfg.flag_list)
 	if ret != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", ret)
+		os.Exit(1)
 	}
 
 	for _, v := range od.Definitions.Definitions {
