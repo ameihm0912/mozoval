@@ -55,10 +55,12 @@ func (state *GDPKGInfoState) evaluate(obj *GDPKGInfoObj) bool {
 
 	// If we get nothing back the package isn't installed
 	if resp.pkgdata.name == "" {
-		debug_prt("[dpkginfo_state] doesn't look like %v is installed\n", obj.Name)
+		debug_prt("[dpkginfo_state] doesn't look like %v is "+
+			"installed\n", obj.Name)
 		return false
 	}
-	debug_prt("[dpkginfo_state] %v installed, %v\n", resp.pkgdata.name, resp.pkgdata.version)
+	debug_prt("[dpkginfo_state] %v installed, %v\n", resp.pkgdata.name,
+		resp.pkgdata.version)
 
 	if len(state.EVRCheck.Value) > 0 {
 		evrop := evr_lookup_operation(state.EVRCheck.Operation)

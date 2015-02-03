@@ -61,7 +61,8 @@ func (state *GTFC54State) evaluate(obj *GTFC54Obj) bool {
 		return false
 	}
 	debug_prt("[textfilecontent54_state] matched %v\n", cmatch)
-	debug_prt("[textfilecontent54_state] compare %v\n", state.SubExpression)
+	debug_prt("[textfilecontent54_state] compare %v\n",
+		state.SubExpression)
 	if state.SubExpression == cmatch {
 		return true
 	}

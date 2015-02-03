@@ -32,7 +32,8 @@ func (gt *GTest) prepare(od *GOvalDefinitions) {
 	//
 	v := od.get_object(gt.Object.ObjectRef)
 	if v == nil {
-		debug_prt("[test] can't locate object %s\n", gt.Object.ObjectRef)
+		debug_prt("[test] can't locate object %s\n",
+			gt.Object.ObjectRef)
 		gt.status = TEST_ERROR
 		return
 	}
@@ -47,7 +48,8 @@ func (gt *GTest) prepare(od *GOvalDefinitions) {
 		r := v.(*GTFC54Obj)
 		iface = r
 	default:
-		debug_prt("[test] unhandled object struct %v\n", reflect.TypeOf(v))
+		debug_prt("[test] unhandled object struct %v\n",
+			reflect.TypeOf(v))
 		gt.status = TEST_ERROR
 		return
 	}

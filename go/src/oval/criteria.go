@@ -43,7 +43,8 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) {
 	}
 
 	if (gc.Operator != "AND") && (gc.Operator != "OR") {
-		debug_prt("[criteria] criteria has invalid operator, ignoring\n")
+		debug_prt("[criteria] criteria has invalid operator, " +
+			"ignoring\n")
 		return
 	}
 
@@ -85,7 +86,8 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 		v := r.(*GTFC54Test)
 		tiface = v
 	default:
-		debug_prt("[criterion] unhandled test struct %v\n", reflect.TypeOf(r))
+		debug_prt("[criterion] unhandled test struct %v\n",
+			reflect.TypeOf(r))
 		gc.status = CRITERIA_ERROR
 		return
 	}
