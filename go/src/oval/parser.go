@@ -130,7 +130,8 @@ func Parse(path string) (*GOvalDefinitions, error) {
 	decoder := xml.NewDecoder(xfd)
 	ok := decoder.Decode(&od)
 	if ok != nil {
-		perr.s = fmt.Sprintf("Error parsing %v: invalid XML format?", path)
+		perr.s = fmt.Sprintf("Error parsing %v: invalid XML format?",
+			path)
 		return nil, &perr
 	}
 	xfd.Close()
