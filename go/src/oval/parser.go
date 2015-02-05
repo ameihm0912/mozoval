@@ -60,7 +60,7 @@ func debugPrint(s string, args ...interface{}) {
 	if !parserCfg.flagDebug {
 		return
 	}
-	fmt.Fprintf(os.Stderr, s, args...)
+	fmt.Fprintf(os.Stdout, s, args...)
 }
 
 func Execute(od *GOvalDefinitions) {
