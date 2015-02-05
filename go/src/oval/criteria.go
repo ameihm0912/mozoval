@@ -11,7 +11,7 @@ const (
 	CRITERIA_ERROR
 )
 
-func (gc *GCriteria) status_string() string {
+func (gc *GCriteria) statusString() string {
 	switch gc.status {
 	case CRITERIA_TRUE:
 		return "true"
@@ -23,33 +23,23 @@ func (gc *GCriteria) status_string() string {
 	return "unknown"
 }
 
-func (gc *GExtendDefinition) evaluate(p *GOvalDefinitions) {
-	debug_prt("[extend_definition] %v\n", gc.Comment)
-
-	x := p.get_definition(gc.Test)
-	if x == nil {
-		debug_prt("cant find definition %v\n", gc.Test)
-		return
-	}
-	x.evaluate(nil, p)
-}
-
 func (gc *GCriteria) evaluate(p *GOvalDefinitions) {
 	// if the operator hasn't been set on the criteria default it to AND.
 	// according to the OVAL spec the operator is a required field but it
-	// seems a lot of definitions do not always include it
+	// seems a lot of definitions do not always include it.
 	if gc.Operator == "" {
 		gc.Operator = "AND"
 	}
 
 	if (gc.Operator != "AND") && (gc.Operator != "OR") {
-		debug_prt("[criteria] criteria has invalid operator, " +
-			"ignoring\n")
+		debugPrint("[criteria] criteria has invalid operator, ignoring\n")
 		return
 	}
 
-	debug_prt("[criteria] %v\n", gc.Operator)
+	debugPrint("[criteria] %v\n", gc.Operator)
 
+	// Evaluate all criteria, criterion, and extended definitions that are
+	// part of this criteria element.
 	for _, c := range gc.Criteria {
 		c.evaluate(p)
 	}
@@ -60,21 +50,22 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) {
 		c.evaluate(p)
 	}
 
-	debug_prt("[criteria] status=%v\n", gc.status_string())
+	debugPrint("[criteria] status=%v\n", gc.statusString())
 }
 
 func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
-	var tiface generictest
+	var tiface genericTest
 	var result bool
 
-	debug_prt("[criterion] %v\n", gc.Comment)
+	debugPrint("[criterion] %v\n", gc.Comment)
 
-	r := p.get_test(gc.Test)
+	r := p.getTest(gc.Test)
 	if r == nil {
-		debug_prt("[criterion] can't locate test %s\n", gc.Test)
+		debugPrint("[criterion] can't locate test %v\n", gc.Test)
 		gc.status = CRITERIA_ERROR
 		return
 	}
+
 	switch reflect.TypeOf(r) {
 	case reflect.TypeOf(&GRPMInfoTest{}):
 		v := r.(*GRPMInfoTest)
@@ -86,8 +77,7 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 		v := r.(*GTFC54Test)
 		tiface = v
 	default:
-		debug_prt("[criterion] unhandled test struct %v\n",
-			reflect.TypeOf(r))
+		debugPrint("[criterion] unhandled test struct %v\n", reflect.TypeOf(r))
 		gc.status = CRITERIA_ERROR
 		return
 	}
@@ -96,10 +86,21 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) {
 
 	result = tiface.execute(p)
 	if result {
-		debug_prt("[criterion] TRUE\n")
+		debugPrint("[criterion] TRUE\n")
 		gc.status = CRITERIA_TRUE
 	} else {
-		debug_prt("[criterion] FALSE\n")
+		debugPrint("[criterion] FALSE\n")
 		gc.status = CRITERIA_FALSE
 	}
+}
+
+func (gc *GExtendDefinition) evaluate(p *GOvalDefinitions) {
+	debugPrint("[extend_definition] %v\n", gc.Comment)
+
+	x := p.getDefinition(gc.Test)
+	if x == nil {
+		debugPrint("can't locate definition %v\n", gc.Test)
+		return
+	}
+	x.evaluate(nil, p)
 }

@@ -20,7 +20,7 @@ type EVR struct {
 	release string
 }
 
-func evr_lookup_operation(s string) int {
+func evrLookupOperation(s string) int {
 	switch s {
 	case "less than":
 		return EVROP_LESS_THAN
@@ -28,7 +28,7 @@ func evr_lookup_operation(s string) int {
 	return EVROP_UNKNOWN
 }
 
-func evr_operation_str(val int) string {
+func evrOperationStr(val int) string {
 	switch val {
 	case EVROP_LESS_THAN:
 		return "<"
@@ -39,23 +39,23 @@ func evr_operation_str(val int) string {
 	}
 }
 
-func evr_isdigit(c rune) bool {
+func evrIsDigit(c rune) bool {
 	return unicode.IsDigit(c)
 }
 
-func evr_extract(s string) EVR {
+func evrExtract(s string) EVR {
 	var ret EVR
 	var idx int
 
 	for _, c := range s {
-		if !evr_isdigit(c) {
+		if !evrIsDigit(c) {
 			break
 		}
 		idx++
 	}
 
 	if idx >= len(s) {
-		panic("evr_extract: all digits")
+		panic("evrExtract: all digits")
 	}
 
 	if s[idx] == ':' {
@@ -66,7 +66,7 @@ func evr_extract(s string) EVR {
 
 	idx++
 	if idx >= len(s) {
-		panic("evr_extract: only epoch")
+		panic("evrExtract: only epoch")
 	}
 	remain := s[idx:]
 
@@ -75,7 +75,7 @@ func evr_extract(s string) EVR {
 		ret.version = remain[:rp0]
 		rp0++
 		if rp0 >= len(remain) {
-			panic("evr_extract: ends in dash")
+			panic("evrExtract: ends in dash")
 		}
 		ret.release = remain[rp0:]
 	} else {
@@ -83,17 +83,16 @@ func evr_extract(s string) EVR {
 		ret.release = ""
 	}
 
-	debug_prt("[evr_extract] epoch=%v, version=%v, revision=%v\n",
-		ret.epoch, ret.version, ret.release)
+	debugPrint("[evrExtract] epoch=%v, version=%v, revision=%v\n", ret.epoch, ret.version, ret.release)
 	return ret
 }
 
-func evr_rpmtokenizer(s string) []string {
+func evrRpmTokenizer(s string) []string {
 	re := regexp.MustCompile("[A-Za-z0-9]+")
 	return re.FindAllString(s, -1)
 }
 
-func evr_trimzeros(s string) string {
+func evrTrimZeros(s string) string {
 	if len(s) == 1 {
 		return s
 	}
@@ -104,27 +103,27 @@ func evr_trimzeros(s string) string {
 	return strings.TrimLeft(s, "0")
 }
 
-func evr_rpmvercmp(actual string, check string) int {
+func evrRpmVerCmp(actual string, check string) int {
 	if actual == check {
 		return 0
 	}
 
-	acttokens := evr_rpmtokenizer(actual)
-	chktokens := evr_rpmtokenizer(check)
+	acttokens := evrRpmTokenizer(actual)
+	chktokens := evrRpmTokenizer(check)
 
 	for i := range chktokens {
 		if i >= len(acttokens) {
 			// There are more tokens in the check value, the
-			// check wins
+			// check wins.
 			return 1
 		}
 
-		// If the values are pure numbers, trim any leading 0's
-		acttest := evr_trimzeros(acttokens[i])
-		chktest := evr_trimzeros(chktokens[i])
+		// If the values are pure numbers, trim any leading 0's.
+		acttest := evrTrimZeros(acttokens[i])
+		chktest := evrTrimZeros(chktokens[i])
 
 		// Do a lexical string comparison here, this should work
-		// even with pure integer values
+		// even with pure integer values.
 		if chktest > acttest {
 			return 1
 		} else if chktest < acttest {
@@ -133,7 +132,7 @@ func evr_rpmvercmp(actual string, check string) int {
 	}
 
 	// If we get this far, see if the actual value still has more tokens
-	// for comparison, if so actual wins
+	// for comparison, if so actual wins.
 	if len(acttokens) > len(chktokens) {
 		return -1
 	}
@@ -141,14 +140,14 @@ func evr_rpmvercmp(actual string, check string) int {
 	return 0
 }
 
-func evr_rpmcompare(actual EVR, check EVR) int {
+func evrRpmCompare(actual EVR, check EVR) int {
 	aepoch, err := strconv.Atoi(actual.epoch)
 	if err != nil {
-		panic("evr_rpmcompare: bad actual epoch")
+		panic("evrRpmCompare: bad actual epoch")
 	}
 	cepoch, err := strconv.Atoi(check.epoch)
 	if err != nil {
-		panic("evr_rpmcompare: bad check epoch")
+		panic("evrRpmCompare: bad check epoch")
 	}
 	if cepoch > aepoch {
 		return 1
@@ -156,12 +155,12 @@ func evr_rpmcompare(actual EVR, check EVR) int {
 		return -1
 	}
 
-	ret := evr_rpmvercmp(actual.version, check.version)
+	ret := evrRpmVerCmp(actual.version, check.version)
 	if ret != 0 {
 		return ret
 	}
 
-	ret = evr_rpmvercmp(actual.release, check.release)
+	ret = evrRpmVerCmp(actual.release, check.release)
 	if ret != 0 {
 		return ret
 	}
@@ -169,14 +168,13 @@ func evr_rpmcompare(actual EVR, check EVR) int {
 	return 0
 }
 
-func evr_compare(op int, actual string, check string) bool {
-	debug_prt("[evr_compare] %v %v %v\n", actual, evr_operation_str(op),
-		check)
+func evrCompare(op int, actual string, check string) bool {
+	debugPrint("[evrCompare] %v %v %v\n", actual, evrOperationStr(op), check)
 
-	evract := evr_extract(actual)
-	evrchk := evr_extract(check)
+	evract := evrExtract(actual)
+	evrchk := evrExtract(check)
 
-	ret := evr_rpmcompare(evract, evrchk)
+	ret := evrRpmCompare(evract, evrchk)
 	switch op {
 	case EVROP_EQUALS:
 		if ret != 0 {
@@ -189,9 +187,9 @@ func evr_compare(op int, actual string, check string) bool {
 		}
 		return true
 	}
-	panic("evr_compare: unknown operator")
+	panic("evrCompare: unknown operator")
 }
 
-func Test_evr_compare(op int, actual string, check string) bool {
-	return evr_compare(op, actual, check)
+func TestEvrCompare(op int, actual string, check string) bool {
+	return evrCompare(op, actual, check)
 }

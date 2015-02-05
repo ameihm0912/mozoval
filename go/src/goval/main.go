@@ -15,35 +15,36 @@ const (
 
 var cfg config
 
-func run_mode() {
-	od, ret := oval.Parse(cfg.flag_run)
+func runMode() {
+	od, ret := oval.Parse(cfg.flagRun)
 	if ret != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", ret)
 		os.Exit(1)
 	}
+
 	oval.Execute(od)
 }
 
-func list_mode() {
-	od, ret := oval.Parse(cfg.flag_list)
+func listMode() {
+	od, ret := oval.Parse(cfg.flagList)
 	if ret != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", ret)
 		os.Exit(1)
 	}
 
 	for _, v := range od.Definitions.Definitions {
-		fmt.Printf("%s %s\n", v.ID, v.Metadata.Title)
+		fmt.Printf("%v %v\n", v.ID, v.Metadata.Title)
 	}
 }
 
 func main() {
 	var opmode int = 0
 
-	cfg = default_config()
-	flag.BoolVar(&cfg.flag_debug, "d", false, "enable debugging")
-	flag.StringVar(&cfg.flag_list, "l", "path", "list checks")
-	flag.StringVar(&cfg.flag_run, "r", "path", "run checks")
-	flag.IntVar(&cfg.max_checks, "n", 10, "concurrent checks")
+	cfg = defaultConfig()
+	flag.BoolVar(&cfg.flagDebug, "d", false, "enable debugging")
+	flag.StringVar(&cfg.flagList, "l", "path", "list checks")
+	flag.StringVar(&cfg.flagRun, "r", "path", "run checks")
+	flag.IntVar(&cfg.maxChecks, "n", 10, "concurrent checks")
 	if len(os.Args) < 2 {
 		flag.Usage()
 		os.Exit(2)
@@ -51,10 +52,10 @@ func main() {
 	flag.Parse()
 
 	var validmode bool = false
-	if cfg.flag_list != "path" {
+	if cfg.flagList != "path" {
 		opmode = OPMODE_LIST
 		validmode = true
-	} else if cfg.flag_run != "path" {
+	} else if cfg.flagRun != "path" {
 		opmode = OPMODE_RUN
 		validmode = true
 	}
@@ -65,22 +66,22 @@ func main() {
 
 	oval.Init()
 
-	if cfg.flag_debug {
-		set_debug(true)
-		// If we enable debugging on the command line, also turn it on
-		// in the OVAL library
-		oval.Set_debug(true)
-		debug_prt("Debugging enabled\n")
+	if cfg.flagDebug {
+		setDebug(true)
+		// If we enable debugging on the command line we also enable
+		// it in the OVAL library.
+		oval.SetDebug(true)
+		debugPrint("debugging enabled\n")
 	}
-	oval.Set_max_checks(cfg.max_checks)
+	oval.SetMaxChecks(cfg.maxChecks)
 
 	switch opmode {
 	case OPMODE_LIST:
-		debug_prt("Entering list mode\n")
-		list_mode()
+		debugPrint("entering list mode\n")
+		listMode()
 	case OPMODE_RUN:
-		debug_prt("Entering run mode\n")
-		run_mode()
+		debugPrint("entering run mode\n")
+		runMode()
 	default:
 		flag.Usage()
 	}

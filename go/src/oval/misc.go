@@ -12,7 +12,7 @@ import (
 // we find a match, return it. If there are submatches are part of the
 // supplied pattern, we return the first submatch.
 //
-func file_content_match(path string, pattern string) (ret string) {
+func fileContentMatch(path string, pattern string) (ret string) {
 	var lastmatch = false
 
 	fd, err := os.Open(path)

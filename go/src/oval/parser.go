@@ -15,52 +15,49 @@ func (pe *ParserError) Error() string {
 }
 
 type config struct {
-	flag_debug bool
-	max_checks int
+	flagDebug bool
+	maxChecks int
 }
 
-type datamgr struct {
-	dpkg dpkgdatamgr
+type dataMgr struct {
+	dpkg dpkgDataMgr
 }
 
-var parser_cfg config
-var dmgr datamgr
-
-func default_parser_config() config {
-	cfg := config{
-		flag_debug: false,
-		// The maximum number of checks that can be run at any given
-		// time
-		max_checks: 10,
-	}
-	return cfg
-}
-
-func (d *datamgr) datamgr_init() {
+func (d *dataMgr) dataMgrInit() {
 	d.dpkg.init()
 }
 
-func (d *datamgr) datamgr_run(precognition bool) {
+func (d *dataMgr) dataMgrRun(precognition bool) {
 	if precognition {
 		d.dpkg.prepare()
 	}
 	go d.dpkg.run()
 }
 
-func (d *datamgr) datamgr_close() {
+func (d *dataMgr) dataMgrClose() {
 	close(d.dpkg.schan)
 }
 
-func Set_debug(f bool) {
-	parser_cfg.flag_debug = f
+var parserCfg config
+var dmgr dataMgr
+
+func defaultParserConfig() config {
+	return config{
+		flagDebug: false,
+		maxChecks: 10,
+	}
 }
 
-func Set_max_checks(i int) {
-	parser_cfg.max_checks = i
+func SetDebug(f bool) {
+	parserCfg.flagDebug = f
 }
 
-func debug_prt(s string, args ...interface{}) {
-	if !parser_cfg.flag_debug {
+func SetMaxChecks(i int) {
+	parserCfg.maxChecks = i
+}
+
+func debugPrint(s string, args ...interface{}) {
+	if !parserCfg.flagDebug {
 		return
 	}
 	fmt.Fprintf(os.Stderr, s, args...)
@@ -68,20 +65,20 @@ func debug_prt(s string, args ...interface{}) {
 
 func Execute(od *GOvalDefinitions) {
 	var precognition bool = false
-	debug_prt("Executing all applicable checks\n")
+	debugPrint("executing all applicable checks\n")
 
-	if parser_cfg.flag_debug {
+	if parserCfg.flagDebug {
 		precognition = true
 	}
 
-	dmgr.datamgr_init()
-	dmgr.datamgr_run(precognition)
+	dmgr.dataMgrInit()
+	dmgr.dataMgrRun(precognition)
 
 	results := make([]GOvalResult, 0)
 	reschan := make(chan GOvalResult)
 	curchecks := 0
 	for _, v := range od.Definitions.Definitions {
-		debug_prt("Executing definition %s...\n", v.ID)
+		debugPrint("executing definition %s...\n", v.ID)
 
 		for {
 			nodata := false
@@ -98,8 +95,8 @@ func Execute(od *GOvalDefinitions) {
 			}
 		}
 
-		if curchecks == parser_cfg.max_checks {
-			// Block and wait for a free slot
+		if curchecks == parserCfg.maxChecks {
+			// Block and wait for a free slot.
 			s := <-reschan
 			results = append(results, s)
 			curchecks--
@@ -108,30 +105,29 @@ func Execute(od *GOvalDefinitions) {
 		curchecks++
 	}
 
-	dmgr.datamgr_close()
+	dmgr.dataMgrClose()
 }
 
 func Init() {
-	parser_cfg = default_parser_config()
+	parserCfg = defaultParserConfig()
 }
 
 func Parse(path string) (*GOvalDefinitions, error) {
 	var od GOvalDefinitions
 	var perr ParserError
 
-	debug_prt("Parsing %s\n", path)
+	debugPrint("parsing %s\n", path)
 
 	xfd, err := os.Open(path)
 	if err != nil {
-		perr.s = fmt.Sprintf("Error opening file: %v", err)
+		perr.s = fmt.Sprintf("error opening file: %v", err)
 		return nil, &perr
 	}
 
 	decoder := xml.NewDecoder(xfd)
 	ok := decoder.Decode(&od)
 	if ok != nil {
-		perr.s = fmt.Sprintf("Error parsing %v: invalid XML format?",
-			path)
+		perr.s = fmt.Sprintf("error parsing %v: invalid xml format?", path)
 		return nil, &perr
 	}
 	xfd.Close()

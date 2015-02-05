@@ -11,7 +11,7 @@ const (
 	TEST_ERROR
 )
 
-type generictest interface {
+type genericTest interface {
 	prepare(*GOvalDefinitions)
 	release()
 	execute(*GOvalDefinitions) bool
@@ -22,18 +22,17 @@ func (gt *GTest) release() {
 }
 
 func (gt *GTest) prepare(od *GOvalDefinitions) {
-	var iface genericobj
+	var iface genericObj
 
 	gt.Lock()
 
 	//
 	// Prepare the object the test depends on, and return the state the
-	// test applies to
+	// test applies to.
 	//
-	v := od.get_object(gt.Object.ObjectRef)
+	v := od.getObject(gt.Object.ObjectRef)
 	if v == nil {
-		debug_prt("[test] can't locate object %s\n",
-			gt.Object.ObjectRef)
+		debugPrint("[test] can't locate object %s\n", gt.Object.ObjectRef)
 		gt.status = TEST_ERROR
 		return
 	}
@@ -48,30 +47,9 @@ func (gt *GTest) prepare(od *GOvalDefinitions) {
 		r := v.(*GTFC54Obj)
 		iface = r
 	default:
-		debug_prt("[test] unhandled object struct %v\n",
-			reflect.TypeOf(v))
+		debugPrint("[test] unhandled object struct %v\n", reflect.TypeOf(v))
 		gt.status = TEST_ERROR
 		return
 	}
 	iface.prepare()
-}
-
-func (od *GOvalDefinitions) get_test(s string) interface{} {
-	for _, x := range od.Tests.RPMInfoTests {
-		if x.ID == s {
-			return &x
-		}
-	}
-	for _, x := range od.Tests.DPKGInfoTests {
-		if x.ID == s {
-			return &x
-		}
-	}
-	for _, x := range od.Tests.TFC54Tests {
-		if x.ID == s {
-			return &x
-		}
-	}
-
-	return nil
 }

@@ -5,15 +5,15 @@ import (
 	"os"
 )
 
-var debug_flag bool
+var debugFlag bool
 
-func set_debug(f bool) {
-	debug_flag = f
+func setDebug(f bool) {
+	debugFlag = f
 }
 
-func debug_prt(s string, args ...interface{}) {
-	if !debug_flag {
+func debugPrint(s string, args ...interface{}) {
+	if !debugFlag {
 		return
 	}
-	fmt.Fprintf(os.Stderr, s, args...)
+	fmt.Fprintf(os.Stdout, s, args...)
 }

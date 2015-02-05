@@ -1,7 +1,67 @@
 package oval
 
-func (od GOvalDefinitions) get_definition(s string) *GDefinition {
+func (od GOvalDefinitions) getDefinition(s string) *GDefinition {
 	for _, x := range od.Definitions.Definitions {
+		if x.ID == s {
+			return &x
+		}
+	}
+
+	return nil
+}
+
+func (od *GOvalDefinitions) getState(s string) interface{} {
+	for _, x := range od.States.RPMInfoStates {
+		if x.ID == s {
+			return &x
+		}
+	}
+	for _, x := range od.States.TFC54States {
+		if x.ID == s {
+			return &x
+		}
+	}
+	for _, x := range od.States.DPKGInfoStates {
+		if x.ID == s {
+			return &x
+		}
+	}
+
+	return nil
+}
+
+func (od *GOvalDefinitions) getObject(s string) interface{} {
+	for _, x := range od.Objects.RPMInfoObjects {
+		if x.ID == s {
+			return &x
+		}
+	}
+	for _, x := range od.Objects.DPKGInfoObjects {
+		if x.ID == s {
+			return &x
+		}
+	}
+	for _, x := range od.Objects.TFC54Objects {
+		if x.ID == s {
+			return &x
+		}
+	}
+
+	return nil
+}
+
+func (od *GOvalDefinitions) getTest(s string) interface{} {
+	for _, x := range od.Tests.RPMInfoTests {
+		if x.ID == s {
+			return &x
+		}
+	}
+	for _, x := range od.Tests.DPKGInfoTests {
+		if x.ID == s {
+			return &x
+		}
+	}
+	for _, x := range od.Tests.TFC54Tests {
 		if x.ID == s {
 			return &x
 		}
@@ -15,14 +75,15 @@ func (od GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
 
 	od.Lock()
 
-	debug_prt("[evaluate] %s\n", od.ID)
+	debugPrint("[evaluate] %v\n", od.ID)
 
-	// Evaluate the root criteria item, this could result in recursion
-	// through subelements of the definition
+	// Evaluate the root criteria item; this will likely result in
+	// recursion through various subelements in the definition.
 	od.Criteria.evaluate(p)
 
-	// If the channel was nil we don't send the result back, we only want
-	// one result per definition
+	// If the channel was nil we don't send the result back. This can
+	// occur if the definition was called as the result of an
+	// extend_definition rule in the OVAL definition being evaluated.
 	if ch != nil {
 		ch <- ret
 	}

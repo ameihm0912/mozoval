@@ -1,15 +1,14 @@
 package main
 
 type config struct {
-	flag_debug bool
-	flag_list  string
-	flag_run   string
-	max_checks int
+	flagDebug bool
+	flagList  string
+	flagRun   string
+	maxChecks int
 }
 
-func default_config() config {
-	cfg := config{
-		flag_debug: false,
+func defaultConfig() config {
+	return config{
+		flagDebug: false,
 	}
-	return cfg
 }

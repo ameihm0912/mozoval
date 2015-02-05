@@ -12,12 +12,12 @@ func main() {
 	oval.Init()
 
 	if len(os.Args) < 2 {
-		fmt.Fprint(os.Stderr, "Specify input test data as argument\n")
+		fmt.Fprint(os.Stderr, "specify input test data file as argument\n")
 		os.Exit(1)
 	}
 	fmt.Println("starting evr comparison tests")
 
-	oval.Set_debug(true)
+	oval.SetDebug(true)
 
 	fd, err := os.Open(os.Args[1])
 	if err != nil {
@@ -40,10 +40,10 @@ func main() {
 		case "<":
 			opmode = oval.EVROP_LESS_THAN
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown operation %v\n", s0[0])
+			fmt.Fprintf(os.Stderr, "unknown operation %v\n", s0[0])
 			os.Exit(1)
 		}
-		result := oval.Test_evr_compare(opmode, s0[1], s0[2])
+		result := oval.TestEvrCompare(opmode, s0[1], s0[2])
 		if !result {
 			fmt.Println("FAIL")
 			os.Exit(2)
