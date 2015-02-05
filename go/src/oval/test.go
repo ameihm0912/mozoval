@@ -26,10 +26,7 @@ func (gt *GTest) prepare(od *GOvalDefinitions) {
 
 	gt.Lock()
 
-	//
-	// Prepare the object the test depends on, and return the state the
-	// test applies to.
-	//
+	// Prepare the object the test depends on.
 	v := od.getObject(gt.Object.ObjectRef)
 	if v == nil {
 		debugPrint("[test] can't locate object %s\n", gt.Object.ObjectRef)

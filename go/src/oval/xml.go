@@ -35,6 +35,7 @@ type GDefinition struct {
 	// Extended struct information, not used by XML parser but used during
 	// definition evaluation
 	sync.Mutex
+	status int
 }
 
 type GDefinitionMeta struct {

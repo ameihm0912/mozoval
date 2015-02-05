@@ -73,13 +73,16 @@ func (od *GOvalDefinitions) getTest(s string) interface{} {
 func (od GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
 	var ret GOvalResult
 
+	// We need a lock here as this definition could be selected for
+	// evaluation by another definition as part of an extended
+	// definition call.
 	od.Lock()
 
 	debugPrint("[evaluate] %v\n", od.ID)
 
 	// Evaluate the root criteria item; this will likely result in
 	// recursion through various subelements in the definition.
-	od.Criteria.evaluate(p)
+	od.status = od.Criteria.evaluate(p)
 
 	// If the channel was nil we don't send the result back. This can
 	// occur if the definition was called as the result of an
