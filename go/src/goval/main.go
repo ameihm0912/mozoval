@@ -24,7 +24,11 @@ func runMode() {
 
 	results := oval.Execute(od)
 	for _, v := range results {
-		fmt.Fprintf(os.Stdout, "%v %v %v\n", v.ID, v.StatusString(), v.Title)
+		notice := "--"
+		if v.StatusString() != "false" {
+			notice = "!!"
+		}
+		fmt.Fprintf(os.Stdout, "%v %v %v %v\n", notice, v.ID, v.StatusString(), v.Title)
 	}
 }
 
