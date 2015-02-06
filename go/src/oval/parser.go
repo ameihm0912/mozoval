@@ -77,6 +77,7 @@ func Execute(od *GOvalDefinitions) []GOvalResult {
 	results := make([]GOvalResult, 0)
 	reschan := make(chan GOvalResult)
 	curchecks := 0
+	expect := len(od.Definitions.Definitions)
 	for _, v := range od.Definitions.Definitions {
 		debugPrint("executing definition %s...\n", v.ID)
 
@@ -86,6 +87,7 @@ func Execute(od *GOvalDefinitions) []GOvalResult {
 			case s := <-reschan:
 				results = append(results, s)
 				curchecks--
+				expect--
 			default:
 				nodata = true
 				break
@@ -100,9 +102,16 @@ func Execute(od *GOvalDefinitions) []GOvalResult {
 			s := <-reschan
 			results = append(results, s)
 			curchecks--
+			expect--
 		}
 		go v.evaluate(reschan, od)
 		curchecks++
+	}
+
+	for expect > 0 {
+		s := <-reschan
+		results = append(results, s)
+		expect--
 	}
 
 	dmgr.dataMgrClose()
