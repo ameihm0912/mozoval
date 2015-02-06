@@ -181,6 +181,7 @@ type GState struct {
 	Version       string        `xml:"version,attr"`
 	VersionCheck  GVersionCheck `xml:"version"`
 	EVRCheck      GEVRCheck     `xml:"evr"`
+	SigKeyID      GSigKeyID     `xml:"signature_keyid"`
 	SubExpression string        `xml:"subexpression"`
 }
 
@@ -212,4 +213,9 @@ type GEVRCheck struct {
 	DataType  string   `xml:"datatype,attr"`
 
 	Value string `xml:",chardata"`
+}
+
+type GSigKeyID struct {
+	XMLName xml.Name `xml:"signature_keyid"`
+	Value   string   `xml:",chardata"`
 }

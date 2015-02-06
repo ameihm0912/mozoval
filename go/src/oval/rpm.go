@@ -53,7 +53,10 @@ func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {
 	}
 	debugPrint("[rpminfo_state] %v installed, %v\n", resp.pkgdata.name, resp.pkgdata.version)
 
-	if len(state.EVRCheck.Value) > 0 {
+	// If it's simply a key ID check, just simulate TRUE detection here.
+	if len(state.SigKeyID.Value) > 0 {
+		return true
+	} else if len(state.EVRCheck.Value) > 0 {
 		evrop := evrLookupOperation(state.EVRCheck.Operation)
 		if evrop == EVROP_UNKNOWN {
 			panic("evaluate: unknown evr comparison operation")
