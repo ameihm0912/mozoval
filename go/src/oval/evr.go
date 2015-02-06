@@ -90,7 +90,43 @@ func evrExtract(s string) EVR {
 
 func evrRpmTokenizer(s string) []string {
 	re := regexp.MustCompile("[A-Za-z0-9]+")
-	return re.FindAllString(s, -1)
+	buf := re.FindAllString(s, -1)
+	ret := make([]string, 0)
+	var isnum bool
+	var cmp string
+	for _, x := range buf {
+		cmp = ""
+		for _, c := range x {
+			if len(cmp) == 0 {
+				if evrIsDigit(c) {
+					isnum = true
+				} else {
+					isnum = false
+				}
+				cmp += string(c)
+			} else {
+				if isnum {
+					if !evrIsDigit(c) {
+						ret = append(ret, cmp)
+						cmp = string(c)
+						isnum = false
+					} else {
+						cmp += string(c)
+					}
+				} else {
+					if evrIsDigit(c) {
+						ret = append(ret, cmp)
+						cmp = string(c)
+						isnum = true
+					} else {
+						cmp += string(c)
+					}
+				}
+			}
+		}
+		ret = append(ret, cmp)
+	}
+	return ret
 }
 
 func evrTrimZeros(s string) string {
@@ -122,6 +158,14 @@ func evrRpmVerCmp(actual string, check string) int {
 		// If the values are pure numbers, trim any leading 0's.
 		acttest := evrTrimZeros(acttokens[i])
 		chktest := evrTrimZeros(chktokens[i])
+
+		// Numeric component will always win out over alpha.
+		if evrIsDigit(rune(acttest[0])) && !evrIsDigit(rune(chktest[0])) {
+			return -1
+		}
+		if evrIsDigit(rune(chktest[0])) && !evrIsDigit(rune(acttest[0])) {
+			return 1
+		}
 
 		// Do a lexical string comparison here, this should work
 		// even with pure integer values.
@@ -183,10 +227,10 @@ func evrCompare(op int, actual string, check string) bool {
 		}
 		return true
 	case EVROP_LESS_THAN:
-		if ret != 1 {
-			return false
+		if ret == 1 {
+			return true
 		}
-		return true
+		return false
 	}
 	panic("evrCompare: unknown operator")
 }

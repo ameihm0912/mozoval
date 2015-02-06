@@ -58,7 +58,7 @@ func (state *GDPKGInfoState) evaluate(obj *GDPKGInfoObj) bool {
 		if evrop == EVROP_UNKNOWN {
 			panic("evaluate: unknown evr comparison operation")
 		}
-		evrCompare(evrop, resp.pkgdata.version, state.EVRCheck.Value)
+		return evrCompare(evrop, resp.pkgdata.version, state.EVRCheck.Value)
 	}
 
 	return false

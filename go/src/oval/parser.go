@@ -21,21 +21,26 @@ type config struct {
 
 type dataMgr struct {
 	dpkg dpkgDataMgr
+	rpm  rpmDataMgr
 }
 
 func (d *dataMgr) dataMgrInit() {
 	d.dpkg.init()
+	d.rpm.init()
 }
 
 func (d *dataMgr) dataMgrRun(precognition bool) {
 	if precognition {
 		d.dpkg.prepare()
+		d.rpm.prepare()
 	}
 	go d.dpkg.run()
+	go d.rpm.run()
 }
 
 func (d *dataMgr) dataMgrClose() {
 	close(d.dpkg.schan)
+	close(d.rpm.schan)
 }
 
 var parserCfg config
