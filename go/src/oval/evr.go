@@ -60,11 +60,12 @@ func evrExtract(s string) EVR {
 
 	if s[idx] == ':' {
 		ret.epoch = s[:idx]
+		idx++
 	} else {
 		ret.epoch = "0"
+		idx = 0
 	}
 
-	idx++
 	if idx >= len(s) {
 		panic("evrExtract: only epoch")
 	}
