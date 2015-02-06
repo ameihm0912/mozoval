@@ -74,9 +74,7 @@ func Execute(od *GOvalDefinitions) []GOvalResult {
 	var precognition bool = false
 	debugPrint("executing all applicable checks\n")
 
-	if parserCfg.flagDebug {
-		precognition = true
-	}
+	precognition = true
 
 	dmgr.dataMgrInit()
 	dmgr.dataMgrRun(precognition)
