@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+func versionPtrnMatch(ver string, pattern string) bool {
+	debugPrint("[versionPtrnMatch] %v ? %v\n", ver, pattern)
+	// XXX Should handle errors here as the pattern can come from the
+	// state as part of a definition.
+	res, _ := regexp.MatchString(pattern, ver)
+	return res
+}
+
 //
 // Given a file, read the file line by line matching against pattern; if
 // we find a match, return it. If there are submatches are part of the

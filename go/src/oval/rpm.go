@@ -67,6 +67,8 @@ func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {
 			panic("evaluate: unknown evr comparison operation")
 		}
 		return evrCompare(evrop, resp.pkgdata.version, state.EVRCheck.Value)
+	} else if len(state.VersionCheck.Value) > 0 {
+		return versionPtrnMatch(resp.pkgdata.version, state.VersionCheck.Value)
 	}
 
 	return false
