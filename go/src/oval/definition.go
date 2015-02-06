@@ -83,6 +83,9 @@ func (od GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
 	// Evaluate the root criteria item; this will likely result in
 	// recursion through various subelements in the definition.
 	od.status = od.Criteria.evaluate(p)
+	ret.Status = od.status
+	ret.Title = od.Metadata.Title
+	ret.ID = od.ID
 
 	// If the channel was nil we don't send the result back. This can
 	// occur if the definition was called as the result of an

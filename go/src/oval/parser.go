@@ -63,7 +63,7 @@ func debugPrint(s string, args ...interface{}) {
 	fmt.Fprintf(os.Stdout, s, args...)
 }
 
-func Execute(od *GOvalDefinitions) {
+func Execute(od *GOvalDefinitions) []GOvalResult {
 	var precognition bool = false
 	debugPrint("executing all applicable checks\n")
 
@@ -106,6 +106,8 @@ func Execute(od *GOvalDefinitions) {
 	}
 
 	dmgr.dataMgrClose()
+
+	return results
 }
 
 func Init() {

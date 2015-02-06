@@ -22,7 +22,10 @@ func runMode() {
 		os.Exit(1)
 	}
 
-	oval.Execute(od)
+	results := oval.Execute(od)
+	for _, v := range results {
+		fmt.Fprintf(os.Stdout, "%v %v %v\n", v.ID, v.StatusString(), v.Title)
+	}
 }
 
 func listMode() {
