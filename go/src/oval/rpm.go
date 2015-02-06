@@ -40,15 +40,20 @@ func (obj *GRPMInfoTest) execute(od *GOvalDefinitions) bool {
 func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {
 	debugPrint("[rpminfo_state] evaluate %v\n", state.ID)
 
+	transpkg := obj.Name
+	if parserCfg.centosRedhatKludge != 0 {
+		transpkg = centosRedhatPackageTranslate(transpkg)
+	}
+
 	rif := rpmRequest{}
 	rif.out = make(chan rpmResponse)
-	rif.name = obj.Name
+	rif.name = transpkg
 	dmgr.rpm.schan <- rif
 	resp := <-rif.out
 
 	// If we get nothing back the package isn't installed.
 	if resp.pkgdata.name == "" {
-		debugPrint("[rpminfo_state] doesn't look like %v is installed\n", obj.Name)
+		debugPrint("[rpminfo_state] doesn't look like %v is installed\n", transpkg)
 		return false
 	}
 	debugPrint("[rpminfo_state] %v installed, %v\n", resp.pkgdata.name, resp.pkgdata.version)

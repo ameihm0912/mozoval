@@ -15,8 +15,9 @@ func (pe *ParserError) Error() string {
 }
 
 type config struct {
-	flagDebug bool
-	maxChecks int
+	flagDebug          bool
+	maxChecks          int
+	centosRedhatKludge int
 }
 
 type dataMgr struct {
@@ -48,8 +49,9 @@ var dmgr dataMgr
 
 func defaultParserConfig() config {
 	return config{
-		flagDebug: false,
-		maxChecks: 10,
+		flagDebug:          false,
+		maxChecks:          10,
+		centosRedhatKludge: 0,
 	}
 }
 
@@ -131,6 +133,8 @@ func Init() {
 func Parse(path string) (*GOvalDefinitions, error) {
 	var od GOvalDefinitions
 	var perr ParserError
+
+	parserCfg.centosRedhatKludge = centosDetection()
 
 	debugPrint("parsing %s\n", path)
 
