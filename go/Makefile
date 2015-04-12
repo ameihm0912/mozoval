@@ -1,16 +1,17 @@
 PROJS = oval goval goval-evrtest
+GO = GOPATH=$(shell pwd):$(shell go env GOROOT)/bin go
 
 all: $(PROJS)
 
 oval:
-	go build oval
-	go install oval
+	$(GO) build oval
+	$(GO) install oval
 
 goval:
-	go install goval
+	$(GO) install goval
 
 goval-evrtest:
-	go install goval-evrtest
+	$(GO) install goval-evrtest
 
 clean:
 	rm -f bin/goval
