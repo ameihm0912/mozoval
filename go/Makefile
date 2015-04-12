@@ -1,4 +1,4 @@
-PROJS = oval goval goval-evrtest
+PROJS = oval goval goval-evrtest goval-pkgquery
 GO = GOPATH=$(shell pwd):$(shell go env GOROOT)/bin go
 
 all: $(PROJS)
@@ -12,6 +12,9 @@ goval:
 
 goval-evrtest:
 	$(GO) install goval-evrtest
+
+goval-pkgquery:
+	$(GO) install goval-pkgquery
 
 clean:
 	rm -f bin/goval

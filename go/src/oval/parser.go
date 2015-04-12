@@ -12,6 +12,11 @@ import (
 	"os"
 )
 
+type ExternalizedPackage struct {
+	Name    string
+	Version string
+}
+
 type ParserError struct {
 	s string
 }
@@ -74,6 +79,21 @@ func debugPrint(s string, args ...interface{}) {
 		return
 	}
 	fmt.Fprintf(os.Stdout, s, args...)
+}
+
+func PackageQuery(tests []string) (matches []ExternalizedPackage) {
+	dmgr.dataMgrInit()
+	dmgr.dataMgrRun(true)
+
+	var dr dpkgResponse
+	for _, x := range tests {
+		dr = dmgr.dpkg.makeRequest(x, DPKG_SUBSTRING_MATCH)
+		for _, y := range dr.pkgdata {
+			matches = append(matches, y.externalize())
+		}
+	}
+
+	return matches
 }
 
 func Execute(od *GOvalDefinitions) []GOvalResult {
