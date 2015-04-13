@@ -7,9 +7,12 @@
 package oval
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -193,9 +196,26 @@ func Init() {
 	parserCfg = defaultParserConfig()
 }
 
-func Parse(path string) (*GOvalDefinitions, error) {
+func ParseBuffer(ovalbuf string) (*GOvalDefinitions, error) {
 	var od GOvalDefinitions
 	var perr ParserError
+
+	parserCfg.centosRedhatKludge = centosDetection()
+
+	bufrdr := strings.NewReader(ovalbuf)
+	decoder := xml.NewDecoder(bufrdr)
+	ok := decoder.Decode(&od)
+	if ok != nil {
+		perr.s = "error parsing data: invalid xml format?"
+		return nil, &perr
+	}
+
+	return &od, nil
+}
+
+func Parse(path string) (*GOvalDefinitions, error) {
+	var perr ParserError
+	var b bytes.Buffer
 
 	parserCfg.centosRedhatKludge = centosDetection()
 
@@ -206,14 +226,9 @@ func Parse(path string) (*GOvalDefinitions, error) {
 		perr.s = fmt.Sprintf("error opening file: %v", err)
 		return nil, &perr
 	}
+	io.Copy(&b, xfd)
 
-	decoder := xml.NewDecoder(xfd)
-	ok := decoder.Decode(&od)
-	if ok != nil {
-		perr.s = fmt.Sprintf("error parsing %v: invalid xml format?", path)
-		return nil, &perr
-	}
 	xfd.Close()
 
-	return &od, nil
+	return ParseBuffer(b.String())
 }
