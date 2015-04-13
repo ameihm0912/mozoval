@@ -10,8 +10,12 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"sync"
 )
 
+// An externalized version of package information. Data managers maintain
+// their own format, but when a package is represented outside this library
+// it will be converted to this type.
 type ExternalizedPackage struct {
 	Name    string
 	Version string
@@ -32,27 +36,54 @@ type config struct {
 }
 
 type dataMgr struct {
-	dpkg dpkgDataMgr
-	rpm  rpmDataMgr
+	dmwg        sync.WaitGroup
+	initialized bool
+	running     bool
+	dpkg        dpkgDataMgr
+	rpm         rpmDataMgr
 }
 
 func (d *dataMgr) dataMgrInit() {
+	if d.initialized {
+		panic("data manager already initialized")
+	}
 	d.dpkg.init()
 	d.rpm.init()
+	d.initialized = true
 }
 
 func (d *dataMgr) dataMgrRun(precognition bool) {
+	if d.running {
+		panic("data manager already running")
+	}
+	if !d.initialized {
+		panic("data manager not initialized")
+	}
+	// If the precognition flag is set, the data manager will build it's
+	// package database before being invoked.
 	if precognition {
 		d.dpkg.prepare()
 		d.rpm.prepare()
 	}
-	go d.dpkg.run()
-	go d.rpm.run()
+	d.dmwg.Add(1)
+	go func() {
+		d.dpkg.run()
+		d.dmwg.Done()
+	}()
+	d.dmwg.Add(1)
+	go func() {
+		d.rpm.run()
+		d.dmwg.Done()
+	}()
+	d.running = true
 }
 
 func (d *dataMgr) dataMgrClose() {
 	close(d.dpkg.schan)
 	close(d.rpm.schan)
+	d.dmwg.Wait()
+	d.running = false
+	d.initialized = false
 }
 
 var parserCfg config
