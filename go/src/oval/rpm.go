@@ -64,7 +64,7 @@ func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {
 		transpkg = centosRedhatPackageTranslate(transpkg)
 	}
 
-	resp := dmgr.rpm.makeRequest(obj.Name, RPM_EXACT_MATCH)
+	resp := dmgr.rpm.makeRequest(transpkg, RPM_EXACT_MATCH)
 
 	// If we get nothing back the package isn't installed.
 	if len(resp.pkgdata) == 0 {
