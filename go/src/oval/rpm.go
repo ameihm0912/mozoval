@@ -64,11 +64,7 @@ func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {
 		transpkg = centosRedhatPackageTranslate(transpkg)
 	}
 
-	rif := rpmRequest{}
-	rif.out = make(chan rpmResponse)
-	rif.name = transpkg
-	dmgr.rpm.schan <- rif
-	resp := <-rif.out
+	resp := dmgr.rpm.makeRequest(obj.Name, RPM_EXACT_MATCH)
 
 	// If we get nothing back the package isn't installed.
 	if len(resp.pkgdata) == 0 {
@@ -132,11 +128,11 @@ func (d *rpmDataMgr) build_response(req rpmRequest) rpmResponse {
 
 	for _, x := range d.pkglist {
 		switch req.matchtype {
-		case DPKG_EXACT_MATCH:
+		case RPM_EXACT_MATCH:
 			if req.name == x.name {
 				ret.pkgdata = append(ret.pkgdata, x)
 			}
-		case DPKG_SUBSTRING_MATCH:
+		case RPM_SUBSTRING_MATCH:
 			if strings.Contains(x.name, req.name) {
 				ret.pkgdata = append(ret.pkgdata, x)
 			}
