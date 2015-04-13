@@ -11,18 +11,31 @@ import (
 	"strings"
 )
 
+const (
+	_ = iota
+	RPM_EXACT_MATCH
+	RPM_SUBSTRING_MATCH
+)
+
 type rpmRequest struct {
-	out  chan rpmResponse
-	name string
+	out       chan rpmResponse
+	name      string
+	matchtype int
 }
 
 type rpmResponse struct {
-	pkgdata rpmPackage
+	pkgdata []rpmPackage
 }
 
 type rpmPackage struct {
 	name    string
 	version string
+}
+
+func (r *rpmPackage) externalize() (ret ExternalizedPackage) {
+	ret.Name = r.name
+	ret.Version = r.version
+	return ret
 }
 
 func (obj *GRPMInfoTest) execute(od *GOvalDefinitions) bool {
@@ -58,11 +71,17 @@ func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {
 	resp := <-rif.out
 
 	// If we get nothing back the package isn't installed.
-	if resp.pkgdata.name == "" {
+	if len(resp.pkgdata) == 0 {
 		debugPrint("[rpminfo_state] doesn't look like %v is installed\n", transpkg)
 		return false
 	}
-	debugPrint("[rpminfo_state] %v installed, %v\n", resp.pkgdata.name, resp.pkgdata.version)
+
+	// XXX It's possible multiple responses can be returned, right now we
+	// just select the first one but we should probably sort and use the
+	// latest.
+	pkgname := resp.pkgdata[0].name
+	pkgversion := resp.pkgdata[0].version
+	debugPrint("[rpminfo_state] %v installed, %v\n", pkgname, pkgversion)
 
 	// If it's simply a key ID check, just simulate TRUE detection here.
 	if len(state.SigKeyID.Value) > 0 {
@@ -72,9 +91,9 @@ func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {
 		if evrop == EVROP_UNKNOWN {
 			panic("evaluate: unknown evr comparison operation")
 		}
-		return evrCompare(evrop, resp.pkgdata.version, state.EVRCheck.Value)
+		return evrCompare(evrop, pkgversion, state.EVRCheck.Value)
 	} else if len(state.VersionCheck.Value) > 0 {
-		return versionPtrnMatch(resp.pkgdata.version, state.VersionCheck.Value)
+		return versionPtrnMatch(pkgversion, state.VersionCheck.Value)
 	}
 
 	return false
@@ -87,6 +106,15 @@ type rpmDataMgr struct {
 	schan    chan rpmRequest
 	pkglist  []rpmPackage
 	prepared bool
+}
+
+func (d *rpmDataMgr) makeRequest(arg string, matchType int) rpmResponse {
+	rif := rpmRequest{}
+	rif.out = make(chan rpmResponse)
+	rif.name = arg
+	rif.matchtype = matchType
+	dmgr.rpm.schan <- rif
+	return <-rif.out
 }
 
 func (d *rpmDataMgr) init() {
@@ -103,9 +131,17 @@ func (d *rpmDataMgr) build_response(req rpmRequest) rpmResponse {
 	ret := rpmResponse{}
 
 	for _, x := range d.pkglist {
-		if req.name == x.name {
-			ret.pkgdata = x
-			break
+		switch req.matchtype {
+		case DPKG_EXACT_MATCH:
+			if req.name == x.name {
+				ret.pkgdata = append(ret.pkgdata, x)
+			}
+		case DPKG_SUBSTRING_MATCH:
+			if strings.Contains(x.name, req.name) {
+				ret.pkgdata = append(ret.pkgdata, x)
+			}
+		default:
+			panic("invalid rpm match type specified")
 		}
 	}
 

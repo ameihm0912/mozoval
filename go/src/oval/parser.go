@@ -115,11 +115,19 @@ func debugPrint(s string, args ...interface{}) {
 func PackageQuery(tests []string) (matches []ExternalizedPackage) {
 	dmgr.dataMgrInit()
 	dmgr.dataMgrRun(true)
+	defer func() {
+		dmgr.dataMgrClose()
+	}()
 
 	var dr dpkgResponse
+	var rr rpmResponse
 	for _, x := range tests {
 		dr = dmgr.dpkg.makeRequest(x, DPKG_SUBSTRING_MATCH)
 		for _, y := range dr.pkgdata {
+			matches = append(matches, y.externalize())
+		}
+		rr = dmgr.rpm.makeRequest(x, RPM_SUBSTRING_MATCH)
+		for _, y := range rr.pkgdata {
 			matches = append(matches, y.externalize())
 		}
 	}
