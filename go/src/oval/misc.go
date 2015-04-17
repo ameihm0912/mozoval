@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"os"
 	"regexp"
-	"strings"
 )
 
 func versionPtrnMatch(ver string, pattern string) bool {
@@ -21,35 +20,28 @@ func versionPtrnMatch(ver string, pattern string) bool {
 	return res
 }
 
-//
 // Given a file, read the file line by line matching against pattern; if
-// we find a match, return it. If there are submatches are part of the
-// supplied pattern, we return the first submatch.
-//
+// we find a match, return it. If there are submatches that are part of the
+// supplied pattern, we return the first submatch. A zero value string
+// is returned if nothing is found.
 func fileContentMatch(path string, pattern string) (ret string) {
-	var lastmatch = false
-
 	fd, err := os.Open(path)
 	if err != nil {
 		return
 	}
-	rdr := bufio.NewReader(fd)
+	defer func() {
+		fd.Close()
+	}()
+	scanner := bufio.NewScanner(fd)
+
 	re, err := regexp.Compile(pattern)
 	if err != nil {
-		fd.Close()
 		return
 	}
-	for {
-		buf, err := rdr.ReadString('\n')
-		if err != nil {
-			lastmatch = true
-		}
 
-		if len(buf) == 0 {
-			return
-		}
-
-		subs := re.FindStringSubmatch(strings.Trim(buf, "\n"))
+	for scanner.Scan() {
+		buf := scanner.Text()
+		subs := re.FindStringSubmatch(buf)
 		if len(subs) >= 2 {
 			ret = subs[1]
 			break
@@ -57,10 +49,6 @@ func fileContentMatch(path string, pattern string) (ret string) {
 			ret = subs[0]
 			break
 		}
-		if lastmatch {
-			break
-		}
 	}
-	fd.Close()
 	return ret
 }
