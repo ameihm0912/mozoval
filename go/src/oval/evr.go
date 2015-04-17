@@ -241,6 +241,7 @@ func evrCompare(op int, actual string, check string) bool {
 	panic("evrCompare: unknown operator")
 }
 
+// Exported version of evrCompare() used for testing in goval-evrtest.
 func TestEvrCompare(op int, actual string, check string) bool {
 	return evrCompare(op, actual, check)
 }
