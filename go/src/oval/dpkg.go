@@ -96,6 +96,10 @@ type dpkgDataMgr struct {
 }
 
 func (d *dpkgDataMgr) makeRequest(arg string, matchType int) dpkgResponse {
+	if !d.prepared {
+		panic("dpkg package manager not prepared")
+	}
+
 	dif := dpkgRequest{}
 	dif.out = make(chan dpkgResponse)
 	dif.name = arg

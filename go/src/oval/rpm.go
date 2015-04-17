@@ -106,6 +106,10 @@ type rpmDataMgr struct {
 }
 
 func (d *rpmDataMgr) makeRequest(arg string, matchType int) rpmResponse {
+	if !d.prepared {
+		panic("rpm package manager not prepared")
+	}
+
 	rif := rpmRequest{}
 	rif.out = make(chan rpmResponse)
 	rif.name = arg
