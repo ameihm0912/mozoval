@@ -28,7 +28,11 @@ func runMode() {
 		os.Exit(1)
 	}
 
-	results := oval.Execute(od)
+	results, err := oval.Execute(od)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 	for _, v := range results {
 		notice := "--"
 		if v.StatusString() != "false" {

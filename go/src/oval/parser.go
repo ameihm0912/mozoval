@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 // An externalized version of package information. Data managers maintain
@@ -36,6 +37,7 @@ func (pe *ParserError) Error() string {
 type config struct {
 	flagDebug          bool
 	maxChecks          int
+	maxDuration        time.Duration
 	centosRedhatKludge int
 }
 
@@ -96,6 +98,7 @@ func defaultParserConfig() config {
 	return config{
 		flagDebug:          false,
 		maxChecks:          10,
+		maxDuration:        time.Second * 30,
 		centosRedhatKludge: 0,
 	}
 }
@@ -141,16 +144,23 @@ func PackageQuery(tests []string) (matches []ExternalizedPackage) {
 	return matches
 }
 
-func Execute(od *GOvalDefinitions) []GOvalResult {
+func Execute(od *GOvalDefinitions) ([]GOvalResult, error) {
 	debugPrint("executing all applicable checks\n")
 
 	dmgr.dataMgrInit()
 	dmgr.dataMgrRun()
+	defer func() {
+		dmgr.dataMgrClose()
+	}()
 
 	results := make([]GOvalResult, 0)
 	reschan := make(chan GOvalResult)
 	curchecks := 0
 	expect := len(od.Definitions.Definitions)
+
+	timeoutChan := time.After(parserCfg.maxDuration)
+	durationError := ParserError{s: "error: execution duration exceeded"}
+
 	for _, v := range od.Definitions.Definitions {
 		debugPrint("executing definition %s...\n", v.ID)
 
@@ -172,24 +182,30 @@ func Execute(od *GOvalDefinitions) []GOvalResult {
 
 		if curchecks == parserCfg.maxChecks {
 			// Block and wait for a free slot.
-			s := <-reschan
-			results = append(results, s)
-			curchecks--
-			expect--
+			select {
+			case s := <-reschan:
+				results = append(results, s)
+				curchecks--
+				expect--
+			case <-timeoutChan:
+				return results, &durationError
+			}
 		}
 		go v.evaluate(reschan, od)
 		curchecks++
 	}
 
 	for expect > 0 {
-		s := <-reschan
-		results = append(results, s)
-		expect--
+		select {
+		case s := <-reschan:
+			results = append(results, s)
+			expect--
+		case <-timeoutChan:
+			return results, &durationError
+		}
 	}
 
-	dmgr.dataMgrClose()
-
-	return results
+	return results, nil
 }
 
 func Init() {
