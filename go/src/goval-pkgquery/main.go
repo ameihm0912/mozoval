@@ -20,11 +20,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	args := make([]string, 0)
-	args = append(args, os.Args[1])
-	ret := oval.PackageQuery(args)
+	ret := oval.PackageQuery([]string{os.Args[1]})
 
 	for _, x := range ret {
-		fmt.Printf("%v %v\n", x.Name, x.Version)
+		fmt.Printf("%v %v %v\n", x.Name, x.Version, x.PkgType)
 	}
 }

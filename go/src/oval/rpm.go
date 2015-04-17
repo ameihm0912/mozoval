@@ -35,6 +35,7 @@ type rpmPackage struct {
 func (r *rpmPackage) externalize() (ret ExternalizedPackage) {
 	ret.Name = r.name
 	ret.Version = r.version
+	ret.PkgType = "rpm"
 	return ret
 }
 

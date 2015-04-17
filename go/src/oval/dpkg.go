@@ -35,6 +35,7 @@ type dpkgPackage struct {
 func (d *dpkgPackage) externalize() (ret ExternalizedPackage) {
 	ret.Name = d.name
 	ret.Version = d.version
+	ret.PkgType = "dpkg"
 	return ret
 }
 

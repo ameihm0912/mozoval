@@ -22,6 +22,7 @@ import (
 type ExternalizedPackage struct {
 	Name    string
 	Version string
+	PkgType string
 }
 
 type ParserError struct {
@@ -123,6 +124,9 @@ func PackageQuery(tests []string) (matches []ExternalizedPackage) {
 
 	var dr dpkgResponse
 	var rr rpmResponse
+	// Query the various package data managers for packages that match
+	// the supplied substring, returning externalized versions of each
+	// matching package.
 	for _, x := range tests {
 		dr = dmgr.dpkg.makeRequest(x, DPKG_SUBSTRING_MATCH)
 		for _, y := range dr.pkgdata {
