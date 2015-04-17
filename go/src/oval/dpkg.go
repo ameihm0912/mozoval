@@ -156,8 +156,8 @@ func dpkgGetPackages() []dpkgPackage {
 	ret := make([]dpkgPackage, 0)
 
 	c := exec.Command("dpkg", "-l")
-	buf, ok := c.Output()
-	if ok != nil {
+	buf, err := c.Output()
+	if err != nil {
 		return nil
 	}
 

@@ -166,8 +166,8 @@ func rpmGetPackages() []rpmPackage {
 	ret := make([]rpmPackage, 0)
 
 	c := exec.Command("rpm", "-qa", "--queryformat", "%{NAME} %{EVR}\\n")
-	buf, ok := c.Output()
-	if ok != nil {
+	buf, err := c.Output()
+	if err != nil {
 		return nil
 	}
 
