@@ -217,8 +217,6 @@ func Parse(path string) (*GOvalDefinitions, error) {
 	var perr ParserError
 	var b bytes.Buffer
 
-	parserCfg.centosRedhatKludge = centosDetection()
-
 	debugPrint("parsing %s\n", path)
 
 	xfd, err := os.Open(path)
