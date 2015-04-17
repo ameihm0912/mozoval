@@ -55,19 +55,17 @@ func (d *dataMgr) dataMgrInit() {
 	d.initialized = true
 }
 
-func (d *dataMgr) dataMgrRun(precognition bool) {
+func (d *dataMgr) dataMgrRun() {
 	if d.running {
 		panic("data manager already running")
 	}
 	if !d.initialized {
 		panic("data manager not initialized")
 	}
-	// If the precognition flag is set, the data manager will build it's
-	// package database before being invoked.
-	if precognition {
-		d.dpkg.prepare()
-		d.rpm.prepare()
-	}
+
+	d.dpkg.prepare()
+	d.rpm.prepare()
+
 	d.dmwg.Add(1)
 	go func() {
 		d.dpkg.run()
@@ -78,6 +76,7 @@ func (d *dataMgr) dataMgrRun(precognition bool) {
 		d.rpm.run()
 		d.dmwg.Done()
 	}()
+
 	d.running = true
 }
 
@@ -117,7 +116,7 @@ func debugPrint(s string, args ...interface{}) {
 
 func PackageQuery(tests []string) (matches []ExternalizedPackage) {
 	dmgr.dataMgrInit()
-	dmgr.dataMgrRun(true)
+	dmgr.dataMgrRun()
 	defer func() {
 		dmgr.dataMgrClose()
 	}()
@@ -139,13 +138,10 @@ func PackageQuery(tests []string) (matches []ExternalizedPackage) {
 }
 
 func Execute(od *GOvalDefinitions) []GOvalResult {
-	var precognition bool = false
 	debugPrint("executing all applicable checks\n")
 
-	precognition = true
-
 	dmgr.dataMgrInit()
-	dmgr.dataMgrRun(precognition)
+	dmgr.dataMgrRun()
 
 	results := make([]GOvalResult, 0)
 	reschan := make(chan GOvalResult)
