@@ -18,4 +18,6 @@ goval-pkgquery:
 
 clean:
 	rm -f bin/goval
+	rm -f bin/goval-evrtest
+	rm -f bin/goval-pkgquery
 	rm -f pkg/*/oval.a
