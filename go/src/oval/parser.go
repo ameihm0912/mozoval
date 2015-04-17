@@ -226,8 +226,11 @@ func Parse(path string) (*GOvalDefinitions, error) {
 		perr.s = fmt.Sprintf("error opening file: %v", err)
 		return nil, &perr
 	}
-	io.Copy(&b, xfd)
-
+	_, err = io.Copy(&b, xfd)
+	if err != nil {
+		perr.s = fmt.Sprintf("error reading file: %v", err)
+		return nil, &perr
+	}
 	xfd.Close()
 
 	return ParseBuffer(b.String())
