@@ -7,9 +7,9 @@
 package oval
 
 func (od GOvalDefinitions) getDefinition(s string) *GDefinition {
-	for _, x := range od.Definitions.Definitions {
-		if x.ID == s {
-			return &x
+	for i := range od.Definitions.Definitions {
+		if od.Definitions.Definitions[i].ID == s {
+			return &od.Definitions.Definitions[i]
 		}
 	}
 
