@@ -76,7 +76,7 @@ func (od *GOvalDefinitions) getTest(s string) interface{} {
 	return nil
 }
 
-func (od GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
+func (od *GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
 	var ret GOvalResult
 
 	// We need a lock here as this definition could be selected for

@@ -161,8 +161,9 @@ func Execute(od *GOvalDefinitions) ([]GOvalResult, error) {
 	timeoutChan := time.After(parserCfg.maxDuration)
 	durationError := ParserError{s: "error: execution duration exceeded"}
 
-	for _, v := range od.Definitions.Definitions {
-		debugPrint("executing definition %s...\n", v.ID)
+	for i := range od.Definitions.Definitions {
+		curDef := od.Definitions.Definitions[i]
+		debugPrint("executing definition %s...\n", curDef.ID)
 
 		for {
 			nodata := false
@@ -191,7 +192,7 @@ func Execute(od *GOvalDefinitions) ([]GOvalResult, error) {
 				return results, &durationError
 			}
 		}
-		go v.evaluate(reschan, od)
+		go curDef.evaluate(reschan, od)
 		curchecks++
 	}
 
