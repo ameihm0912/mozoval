@@ -37,7 +37,6 @@ func fileContentMatchAll(path string, pattern string) (ret string) {
 	}
 
 	subs := re.FindStringSubmatch(string(bytebuf))
-	debugPrint("Testing %v\n", subs)
 	if len(subs) >= 2 {
 		ret = subs[1]
 	} else if len(subs) == 1 {
