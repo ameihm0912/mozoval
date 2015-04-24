@@ -64,7 +64,7 @@ func (state *GTFC54State) evaluate(obj *GTFC54Obj) bool {
 	path := obj.resolvePath()
 	debugPrint("[textfilecontent54_state] target %v\n", path)
 	debugPrint("[textfilecontent54_state] pattern %v\n", obj.Pattern)
-	cmatch := fileContentMatch(path, obj.Pattern)
+	cmatch := fileContentMatchAll(path, obj.Pattern)
 	if len(cmatch) == 0 {
 		return false
 	}

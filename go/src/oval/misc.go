@@ -8,6 +8,7 @@ package oval
 
 import (
 	"bufio"
+	"io/ioutil"
 	"os"
 	"regexp"
 )
@@ -18,6 +19,31 @@ func versionPtrnMatch(ver string, pattern string) bool {
 	// state as part of a definition.
 	res, _ := regexp.MatchString(pattern, ver)
 	return res
+}
+
+// Given a file, read the entire file and match against pattern. If
+// we find a match, return it. If there are submatches that are part of
+// the supplied pattern, we return the first submatch. A zero value
+// string is returned if nothing is found.
+func fileContentMatchAll(path string, pattern string) (ret string) {
+	bytebuf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return
+	}
+
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return
+	}
+
+	subs := re.FindStringSubmatch(string(bytebuf))
+	debugPrint("Testing %v\n", subs)
+	if len(subs) >= 2 {
+		ret = subs[1]
+	} else if len(subs) == 1 {
+		ret = subs[0]
+	}
+	return
 }
 
 // Given a file, read the file line by line matching against pattern; if
@@ -50,5 +76,5 @@ func fileContentMatch(path string, pattern string) (ret string) {
 			break
 		}
 	}
-	return ret
+	return
 }
