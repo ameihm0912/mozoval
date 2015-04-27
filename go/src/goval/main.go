@@ -39,6 +39,12 @@ func runMode() {
 			notice = "!!"
 		}
 		fmt.Fprintf(os.Stdout, "%v %v %v %v\n", notice, v.ID, v.StatusString(), v.Title)
+		// If any errors are present, print those as well
+		if len(v.Errors) > 0 {
+			for _, x := range v.Errors {
+				fmt.Fprintf(os.Stdout, "ee %v %v\n", v.ID, x)
+			}
+		}
 	}
 }
 

@@ -25,7 +25,7 @@ func (gc *GCriteria) statusString() string {
 	return "unknown"
 }
 
-func (gc *GCriteria) evaluate(p *GOvalDefinitions) int {
+func (gc *GCriteria) evaluate(p *GOvalDefinitions, ctx defExecContext) int {
 	// if the operator hasn't been set on the criteria default it to AND.
 	// according to the OVAL spec the operator is a required field but it
 	// seems a lot of definitions do not always include it.
@@ -34,7 +34,7 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) int {
 	}
 
 	if (gc.Operator != "AND") && (gc.Operator != "OR") {
-		debugPrint("[criteria] criteria has invalid operator, ignoring\n")
+		ctx.error("[criteria] criteria has invalid operator, ignoring")
 		gc.status = CRITERIA_ERROR
 		return gc.status
 	}
@@ -45,7 +45,7 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) int {
 	// part of this criteria element.
 	results := make([]int, 0)
 	for i := range gc.Criteria {
-		results = append(results, gc.Criteria[i].evaluate(p))
+		results = append(results, gc.Criteria[i].evaluate(p, ctx))
 	}
 	for i := range gc.ExtendDef {
 		results = append(results, gc.ExtendDef[i].evaluate(p))

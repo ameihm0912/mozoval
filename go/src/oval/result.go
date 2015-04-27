@@ -20,6 +20,7 @@ type GOvalResult struct {
 	Status int
 	Title  string
 	ID     string
+	Errors []string
 }
 
 func (gr *GOvalResult) StatusString() string {

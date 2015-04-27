@@ -6,6 +6,47 @@
 // - Aaron Meihm ameihm@mozilla.com
 package oval
 
+import (
+	"fmt"
+	"sync"
+)
+
+type defExecContext struct {
+	errChan chan string
+	errWg   sync.WaitGroup
+	errors  []string
+}
+
+func newDefExecContext() *defExecContext {
+	ret := defExecContext{}
+	ret.errChan = make(chan string)
+	ret.errWg.Add(1)
+	go func() {
+		defer func() {
+			ret.errWg.Done()
+		}()
+		for {
+			s, ok := <-ret.errChan
+			if !ok {
+				break
+			}
+			ret.errors = append(ret.errors, s)
+		}
+	}()
+	return &ret
+}
+
+func (d *defExecContext) error(s string, args ...interface{}) {
+	buf := fmt.Sprintf(s, args...)
+	d.errChan <- buf
+	debugPrint(buf + "\n")
+}
+
+func (d *defExecContext) finish() {
+	close(d.errChan)
+	d.errWg.Wait()
+}
+
 func (od *GOvalDefinitions) getDefinition(s string) *GDefinition {
 	for i := range od.Definitions.Definitions {
 		if od.Definitions.Definitions[i].ID == s {
@@ -92,12 +133,18 @@ func (od *GDefinition) evaluate(ch chan GOvalResult, p *GOvalDefinitions) {
 
 	debugPrint("[evaluate] %v\n", od.ID)
 
+	ctx := newDefExecContext()
+
 	// Evaluate the root criteria item; this will likely result in
 	// recursion through various subelements in the definition.
-	od.status = od.Criteria.evaluate(p)
+	od.status = od.Criteria.evaluate(p, *ctx)
 	ret.Status = od.status
 	ret.Title = od.Metadata.Title
 	ret.ID = od.ID
+
+	ctx.finish()
+	ret.Errors = make([]string, len(ctx.errors))
+	copy(ret.Errors, ctx.errors)
 
 	// If the channel was nil we don't send the result back. This can
 	// occur if the definition was called as the result of an
