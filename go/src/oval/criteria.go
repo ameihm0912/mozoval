@@ -48,14 +48,14 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) int {
 	// Evaluate all criteria, criterion, and extended definitions that are
 	// part of this criteria element.
 	results := make([]int, 0)
-	for _, c := range gc.Criteria {
-		results = append(results, c.evaluate(p))
+	for i := range gc.Criteria {
+		results = append(results, gc.Criteria[i].evaluate(p))
 	}
-	for _, c := range gc.ExtendDef {
-		results = append(results, c.evaluate(p))
+	for i := range gc.ExtendDef {
+		results = append(results, gc.ExtendDef[i].evaluate(p))
 	}
-	for _, c := range gc.Criterion {
-		results = append(results, c.evaluate(p))
+	for i := range gc.Criterion {
+		results = append(results, gc.Criterion[i].evaluate(p))
 	}
 
 	if gc.Operator == "AND" {
