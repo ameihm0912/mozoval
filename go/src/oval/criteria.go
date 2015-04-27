@@ -6,10 +6,6 @@
 // - Aaron Meihm ameihm@mozilla.com
 package oval
 
-import (
-	"reflect"
-)
-
 const (
 	_ = iota
 	CRITERIA_TRUE
@@ -58,6 +54,16 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions) int {
 		results = append(results, gc.Criterion[i].evaluate(p))
 	}
 
+	// If an error occurred anywhere during evaluation, return an error
+	// for the criteria.
+	for _, c := range results {
+		if c == CRITERIA_ERROR {
+			gc.status = CRITERIA_ERROR
+			debugPrint("[criteria] status=%v\n", gc.statusString())
+			return gc.status
+		}
+	}
+
 	if gc.Operator == "AND" {
 		gc.status = CRITERIA_TRUE
 		for _, c := range results {
@@ -85,30 +91,17 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) int {
 
 	debugPrint("[criterion] %v\n", gc.Comment)
 
-	r := p.getTest(gc.Test)
-	if r == nil {
+	tiface = p.getTest(gc.Test)
+	if tiface == nil {
 		debugPrint("[criterion] can't locate test %v\n", gc.Test)
 		gc.status = CRITERIA_ERROR
 		return gc.status
 	}
 
-	switch reflect.TypeOf(r) {
-	case reflect.TypeOf(&GRPMInfoTest{}):
-		v := r.(*GRPMInfoTest)
-		tiface = v
-	case reflect.TypeOf(&GDPKGInfoTest{}):
-		v := r.(*GDPKGInfoTest)
-		tiface = v
-	case reflect.TypeOf(&GTFC54Test{}):
-		v := r.(*GTFC54Test)
-		tiface = v
-	default:
-		debugPrint("[criterion] unhandled test struct %v\n", reflect.TypeOf(r))
-		gc.status = CRITERIA_ERROR
-		return gc.status
-	}
-
 	tiface.prepare(p)
+	defer func() {
+		tiface.release()
+	}()
 
 	result = tiface.execute(p)
 	if result {

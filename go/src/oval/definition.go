@@ -6,7 +6,7 @@
 // - Aaron Meihm ameihm@mozilla.com
 package oval
 
-func (od GOvalDefinitions) getDefinition(s string) *GDefinition {
+func (od *GOvalDefinitions) getDefinition(s string) *GDefinition {
 	for i := range od.Definitions.Definitions {
 		if od.Definitions.Definitions[i].ID == s {
 			return &od.Definitions.Definitions[i]
@@ -56,20 +56,23 @@ func (od *GOvalDefinitions) getObject(s string) interface{} {
 	return nil
 }
 
-func (od *GOvalDefinitions) getTest(s string) interface{} {
-	for _, x := range od.Tests.RPMInfoTests {
+func (od *GOvalDefinitions) getTest(s string) genericTest {
+	for i := range od.Tests.RPMInfoTests {
+		x := &od.Tests.RPMInfoTests[i]
 		if x.ID == s {
-			return &x
+			return x
 		}
 	}
-	for _, x := range od.Tests.DPKGInfoTests {
+	for i := range od.Tests.DPKGInfoTests {
+		x := &od.Tests.DPKGInfoTests[i]
 		if x.ID == s {
-			return &x
+			return x
 		}
 	}
-	for _, x := range od.Tests.TFC54Tests {
+	for i := range od.Tests.TFC54Tests {
+		x := &od.Tests.TFC54Tests[i]
 		if x.ID == s {
-			return &x
+			return x
 		}
 	}
 
