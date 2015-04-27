@@ -48,10 +48,10 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions, ctx defExecContext) int {
 		results = append(results, gc.Criteria[i].evaluate(p, ctx))
 	}
 	for i := range gc.ExtendDef {
-		results = append(results, gc.ExtendDef[i].evaluate(p))
+		results = append(results, gc.ExtendDef[i].evaluate(p, ctx))
 	}
 	for i := range gc.Criterion {
-		results = append(results, gc.Criterion[i].evaluate(p))
+		results = append(results, gc.Criterion[i].evaluate(p, ctx))
 	}
 
 	// If an error occurred anywhere during evaluation, return an error
@@ -85,7 +85,7 @@ func (gc *GCriteria) evaluate(p *GOvalDefinitions, ctx defExecContext) int {
 	return gc.status
 }
 
-func (gc *GCriterion) evaluate(p *GOvalDefinitions) int {
+func (gc *GCriterion) evaluate(p *GOvalDefinitions, ctx defExecContext) int {
 	var tiface genericTest
 	var result bool
 
@@ -93,7 +93,7 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) int {
 
 	tiface = p.getTest(gc.Test)
 	if tiface == nil {
-		debugPrint("[criterion] can't locate test %v\n", gc.Test)
+		ctx.error("[criterion] can't locate test %v", gc.Test)
 		gc.status = CRITERIA_ERROR
 		return gc.status
 	}
@@ -114,12 +114,12 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions) int {
 	return gc.status
 }
 
-func (gc *GExtendDefinition) evaluate(p *GOvalDefinitions) int {
+func (gc *GExtendDefinition) evaluate(p *GOvalDefinitions, ctx defExecContext) int {
 	debugPrint("[extend_definition] %v\n", gc.Comment)
 
 	x := p.getDefinition(gc.Test)
 	if x == nil {
-		debugPrint("can't locate definition %v\n", gc.Test)
+		ctx.error("can't locate definition %v", gc.Test)
 		return CRITERIA_ERROR
 	}
 	x.evaluate(nil, p)
