@@ -6,10 +6,6 @@
 // - Aaron Meihm ameihm@mozilla.com
 package oval
 
-import (
-	"reflect"
-)
-
 const (
 	_ = iota
 	TEST_PASS
@@ -33,24 +29,9 @@ func (gt *GTest) prepare(od *GOvalDefinitions) {
 	gt.Lock()
 
 	// Prepare the object the test depends on.
-	v := od.getObject(gt.Object.ObjectRef)
-	if v == nil {
+	iface = od.getObject(gt.Object.ObjectRef)
+	if iface == nil {
 		debugPrint("[test] can't locate object %s\n", gt.Object.ObjectRef)
-		gt.status = TEST_ERROR
-		return
-	}
-	switch reflect.TypeOf(v) {
-	case reflect.TypeOf(&GRPMInfoObj{}):
-		r := v.(*GRPMInfoObj)
-		iface = r
-	case reflect.TypeOf(&GDPKGInfoObj{}):
-		r := v.(*GDPKGInfoObj)
-		iface = r
-	case reflect.TypeOf(&GTFC54Obj{}):
-		r := v.(*GTFC54Obj)
-		iface = r
-	default:
-		debugPrint("[test] unhandled object struct %v\n", reflect.TypeOf(v))
 		gt.status = TEST_ERROR
 		return
 	}

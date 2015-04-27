@@ -36,20 +36,23 @@ func (od *GOvalDefinitions) getState(s string) interface{} {
 	return nil
 }
 
-func (od *GOvalDefinitions) getObject(s string) interface{} {
-	for _, x := range od.Objects.RPMInfoObjects {
+func (od *GOvalDefinitions) getObject(s string) genericObj {
+	for i := range od.Objects.RPMInfoObjects {
+		x := &od.Objects.RPMInfoObjects[i]
 		if x.ID == s {
-			return &x
+			return x
 		}
 	}
-	for _, x := range od.Objects.DPKGInfoObjects {
+	for i := range od.Objects.DPKGInfoObjects {
+		x := &od.Objects.DPKGInfoObjects[i]
 		if x.ID == s {
-			return &x
+			return x
 		}
 	}
-	for _, x := range od.Objects.TFC54Objects {
+	for i := range od.Objects.TFC54Objects {
+		x := &od.Objects.TFC54Objects[i]
 		if x.ID == s {
-			return &x
+			return x
 		}
 	}
 
