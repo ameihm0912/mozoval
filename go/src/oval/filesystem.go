@@ -11,22 +11,26 @@ import (
 	"path/filepath"
 )
 
-func (obj *GTFC54Test) execute(od *GOvalDefinitions) bool {
+func (obj *GTFC54Test) execute(od *GOvalDefinitions, ctx defExecContext) (bool, error) {
 	v := od.getObject(obj.Object.ObjectRef)
 	if v == nil {
-		panic("unknown object in test execution")
+		ret := &ParserError{"unknown object in test execution"}
+		ctx.error(ret.Error())
+		return false, ret
 	}
 	// XXX We should validate the object type here.
 	o := v.(*GTFC54Obj)
 
 	s := od.getState(obj.State.StateRef)
 	if s == nil {
-		panic("unknown state in test execution")
+		ret := &ParserError{"unknown state in test execution"}
+		ctx.error(ret.Error())
+		return false, ret
 	}
 	// XXX We should validate the state type here.
 	state := s.(*GTFC54State)
 
-	return state.evaluate(o)
+	return state.evaluate(o), nil
 }
 
 func (obj *GTFC54Obj) resolvePath() (ret string) {

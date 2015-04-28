@@ -39,22 +39,26 @@ func (r *rpmPackage) externalize() (ret ExternalizedPackage) {
 	return ret
 }
 
-func (obj *GRPMInfoTest) execute(od *GOvalDefinitions) bool {
+func (obj *GRPMInfoTest) execute(od *GOvalDefinitions, ctx defExecContext) (bool, error) {
 	v := od.getObject(obj.Object.ObjectRef)
 	if v == nil {
-		panic("unknown object in test execution!")
+		ret := &ParserError{"unknown object in test execution"}
+		ctx.error(ret.Error())
+		return false, ret
 	}
 	// XXX We should validate the object type here.
 	o := v.(*GRPMInfoObj)
 
 	s := od.getState(obj.State.StateRef)
 	if s == nil {
-		panic("unknown state in test execution")
+		ret := &ParserError{"unknown state in test execution"}
+		ctx.error(ret.Error())
+		return false, ret
 	}
 	// XXX We should validate the state type here.
 	state := s.(*GRPMInfoState)
 
-	return state.evaluate(o)
+	return state.evaluate(o), nil
 }
 
 func (state *GRPMInfoState) evaluate(obj *GRPMInfoObj) bool {

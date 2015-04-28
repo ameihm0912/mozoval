@@ -103,7 +103,13 @@ func (gc *GCriterion) evaluate(p *GOvalDefinitions, ctx defExecContext) int {
 		tiface.release()
 	}()
 
-	result = tiface.execute(p)
+	result, err := tiface.execute(p, ctx)
+	if err != nil {
+		debugPrint("[criterion] ERROR\n")
+		gc.status = CRITERIA_ERROR
+		return gc.status
+	}
+
 	if result {
 		debugPrint("[criterion] TRUE\n")
 		gc.status = CRITERIA_TRUE

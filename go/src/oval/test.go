@@ -16,7 +16,7 @@ const (
 type genericTest interface {
 	prepare(*GOvalDefinitions)
 	release()
-	execute(*GOvalDefinitions) bool
+	execute(*GOvalDefinitions, defExecContext) (bool, error)
 }
 
 func (gt *GTest) release() {
