@@ -1,4 +1,5 @@
-PROJS = oval goval goval-evrtest goval-pkgquery
+PROJS = oval goval goval-evrtest goval-pkgquery \
+	ubuntu-cve-tracker
 GO = GOPATH=$(shell pwd):$(shell go env GOROOT)/bin go
 
 all: $(PROJS)
@@ -15,6 +16,9 @@ goval-evrtest:
 
 goval-pkgquery:
 	$(GO) install goval-pkgquery
+
+ubuntu-cve-tracker:
+	$(GO) install ubuntu-cve-tracker
 
 clean:
 	rm -f bin/goval
