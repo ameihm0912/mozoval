@@ -18,8 +18,13 @@ func (obj *GTFC54Test) execute(od *GOvalDefinitions, ctx defExecContext) (bool, 
 		ctx.error(ret.Error())
 		return false, ret
 	}
-	// XXX We should validate the object type here.
-	o := v.(*GTFC54Obj)
+
+	o, ok := v.(*GTFC54Obj)
+	if !ok {
+		ret := &ParserError{"object is not textfilecontent54_object"}
+		ctx.error(ret.Error())
+		return false, ret
+	}
 
 	s := od.getState(obj.State.StateRef)
 	if s == nil {
@@ -27,8 +32,13 @@ func (obj *GTFC54Test) execute(od *GOvalDefinitions, ctx defExecContext) (bool, 
 		ctx.error(ret.Error())
 		return false, ret
 	}
-	// XXX We should validate the state type here.
-	state := s.(*GTFC54State)
+
+	state, ok := s.(*GTFC54State)
+	if !ok {
+		ret := &ParserError{"state is not textfilecontent54_state"}
+		ctx.error(ret.Error())
+		return false, ret
+	}
 
 	return state.evaluate(o), nil
 }

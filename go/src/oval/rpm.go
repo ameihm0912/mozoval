@@ -46,8 +46,13 @@ func (obj *GRPMInfoTest) execute(od *GOvalDefinitions, ctx defExecContext) (bool
 		ctx.error(ret.Error())
 		return false, ret
 	}
-	// XXX We should validate the object type here.
-	o := v.(*GRPMInfoObj)
+
+	o, ok := v.(*GRPMInfoObj)
+	if !ok {
+		ret := &ParserError{"object is not rpminfo_object"}
+		ctx.error(ret.Error())
+		return false, ret
+	}
 
 	s := od.getState(obj.State.StateRef)
 	if s == nil {
@@ -55,8 +60,13 @@ func (obj *GRPMInfoTest) execute(od *GOvalDefinitions, ctx defExecContext) (bool
 		ctx.error(ret.Error())
 		return false, ret
 	}
-	// XXX We should validate the state type here.
-	state := s.(*GRPMInfoState)
+
+	state, ok := s.(*GRPMInfoState)
+	if !ok {
+		ret := &ParserError{"state is not rpminfo_state"}
+		ctx.error(ret.Error())
+		return false, ret
+	}
 
 	return state.evaluate(o), nil
 }

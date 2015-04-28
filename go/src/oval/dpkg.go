@@ -46,8 +46,13 @@ func (obj *GDPKGInfoTest) execute(od *GOvalDefinitions, ctx defExecContext) (boo
 		ctx.error(ret.Error())
 		return false, ret
 	}
-	// XXX We should validate the object type here.
-	o := v.(*GDPKGInfoObj)
+
+	o, ok := v.(*GDPKGInfoObj)
+	if !ok {
+		ret := &ParserError{"object is not dpkginfo_object"}
+		ctx.error(ret.Error())
+		return false, ret
+	}
 
 	s := od.getState(obj.State.StateRef)
 	if s == nil {
@@ -55,8 +60,13 @@ func (obj *GDPKGInfoTest) execute(od *GOvalDefinitions, ctx defExecContext) (boo
 		ctx.error(ret.Error())
 		return false, ret
 	}
-	// XXX We should validate the state type here.
-	state := s.(*GDPKGInfoState)
+
+	state, ok := s.(*GDPKGInfoState)
+	if !ok {
+		ret := &ParserError{"state is not dpkginfo_state"}
+		ctx.error(ret.Error())
+		return false, ret
+	}
 
 	return state.evaluate(o), nil
 }
