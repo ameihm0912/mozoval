@@ -15,8 +15,6 @@ import (
 )
 
 func main() {
-	oval.Init()
-
 	if len(os.Args) < 2 {
 		fmt.Fprint(os.Stderr, "specify input test data file as argument\n")
 		os.Exit(1)

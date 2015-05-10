@@ -87,8 +87,6 @@ func main() {
 		os.Exit(2)
 	}
 
-	oval.Init()
-
 	if cfg.flagDebug {
 		setDebug(true)
 		// If we enable debugging on the command line we also enable

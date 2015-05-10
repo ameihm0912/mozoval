@@ -13,8 +13,6 @@ import (
 )
 
 func main() {
-	oval.Init()
-
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "specify substring to match\n")
 		os.Exit(1)

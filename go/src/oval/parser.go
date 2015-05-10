@@ -209,7 +209,7 @@ func Execute(od *GOvalDefinitions) ([]GOvalResult, error) {
 	return results, nil
 }
 
-func Init() {
+func init() {
 	parserCfg = defaultParserConfig()
 }
 
