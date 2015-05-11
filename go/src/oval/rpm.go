@@ -8,6 +8,7 @@ package oval
 
 import (
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -15,6 +16,7 @@ const (
 	_ = iota
 	RPM_EXACT_MATCH
 	RPM_SUBSTRING_MATCH
+	RPM_REGEXP_MATCH
 )
 
 type rpmRequest struct {
@@ -145,6 +147,15 @@ func (d *rpmDataMgr) prepare() {
 func (d *rpmDataMgr) build_response(req rpmRequest) rpmResponse {
 	ret := rpmResponse{}
 
+	var rematch *regexp.Regexp
+	var err error
+	if req.matchtype == RPM_REGEXP_MATCH {
+		rematch, err = regexp.Compile(req.name)
+		if err != nil {
+			return ret
+		}
+	}
+
 	for _, x := range d.pkglist {
 		switch req.matchtype {
 		case RPM_EXACT_MATCH:
@@ -153,6 +164,10 @@ func (d *rpmDataMgr) build_response(req rpmRequest) rpmResponse {
 			}
 		case RPM_SUBSTRING_MATCH:
 			if strings.Contains(x.name, req.name) {
+				ret.pkgdata = append(ret.pkgdata, x)
+			}
+		case RPM_REGEXP_MATCH:
+			if rematch.MatchString(x.name) {
 				ret.pkgdata = append(ret.pkgdata, x)
 			}
 		default:

@@ -7,18 +7,25 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"oval"
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	var useRegexp bool
+
+	flag.BoolVar(&useRegexp, "r", false, "argument is regular expression")
+	flag.Parse()
+	args := flag.Args()
+
+	if len(args) < 1 {
 		fmt.Fprintf(os.Stderr, "specify substring to match\n")
 		os.Exit(1)
 	}
 
-	ret := oval.PackageQuery([]string{os.Args[1]})
+	ret := oval.PackageQuery([]string{args[0]}, useRegexp)
 
 	for _, x := range ret {
 		fmt.Printf("%v %v %v\n", x.Name, x.Version, x.PkgType)

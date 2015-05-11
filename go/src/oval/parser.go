@@ -118,7 +118,7 @@ func debugPrint(s string, args ...interface{}) {
 	fmt.Fprintf(os.Stdout, s, args...)
 }
 
-func PackageQuery(tests []string) (matches []ExternalizedPackage) {
+func PackageQuery(tests []string, isRegex bool) (matches []ExternalizedPackage) {
 	dmgr.dataMgrInit()
 	dmgr.dataMgrRun()
 	defer func() {
@@ -131,11 +131,18 @@ func PackageQuery(tests []string) (matches []ExternalizedPackage) {
 	// the supplied substring, returning externalized versions of each
 	// matching package.
 	for _, x := range tests {
-		dr = dmgr.dpkg.makeRequest(x, DPKG_SUBSTRING_MATCH)
+		rpmrunmode := RPM_SUBSTRING_MATCH
+		dpkgrunmode := DPKG_SUBSTRING_MATCH
+		if isRegex {
+			rpmrunmode = RPM_REGEXP_MATCH
+			dpkgrunmode = DPKG_REGEXP_MATCH
+		}
+
+		dr = dmgr.dpkg.makeRequest(x, dpkgrunmode)
 		for _, y := range dr.pkgdata {
 			matches = append(matches, y.externalize())
 		}
-		rr = dmgr.rpm.makeRequest(x, RPM_SUBSTRING_MATCH)
+		rr = dmgr.rpm.makeRequest(x, rpmrunmode)
 		for _, y := range rr.pkgdata {
 			matches = append(matches, y.externalize())
 		}

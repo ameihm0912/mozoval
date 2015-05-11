@@ -8,6 +8,7 @@ package oval
 
 import (
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -15,6 +16,7 @@ const (
 	_ = iota
 	DPKG_EXACT_MATCH
 	DPKG_SUBSTRING_MATCH
+	DPKG_REGEXP_MATCH
 )
 
 type dpkgRequest struct {
@@ -135,6 +137,15 @@ func (d *dpkgDataMgr) prepare() {
 func (d *dpkgDataMgr) build_response(req dpkgRequest) dpkgResponse {
 	ret := dpkgResponse{}
 
+	var rematch *regexp.Regexp
+	var err error
+	if req.matchtype == DPKG_REGEXP_MATCH {
+		rematch, err = regexp.Compile(req.name)
+		if err != nil {
+			return ret
+		}
+	}
+
 	for _, x := range d.pkglist {
 		switch req.matchtype {
 		case DPKG_EXACT_MATCH:
@@ -143,6 +154,10 @@ func (d *dpkgDataMgr) build_response(req dpkgRequest) dpkgResponse {
 			}
 		case DPKG_SUBSTRING_MATCH:
 			if strings.Contains(x.name, req.name) {
+				ret.pkgdata = append(ret.pkgdata, x)
+			}
+		case DPKG_REGEXP_MATCH:
+			if rematch.MatchString(x.name) {
 				ret.pkgdata = append(ret.pkgdata, x)
 			}
 		default:
