@@ -46,6 +46,7 @@ func lineParser(buf string) error {
 		CVE      string
 		ID       string
 		Title    string
+		Outcome  string
 	)
 
 	var pTable = []struct {
@@ -56,6 +57,7 @@ func lineParser(buf string) error {
 		{".*id=(\\S+).*", &ID},
 		{".*title=\"([^\"]+).*", &Title},
 		{"^(\\S+) ovalresult.*", &Hostname},
+		{".*outcome=(\\S+).*", &Outcome},
 	}
 
 	for i := range pTable {
@@ -65,6 +67,21 @@ func lineParser(buf string) error {
 			continue
 		}
 		*pTable[i].target = matches[1]
+	}
+
+	// Do some basic validation of the data included with the result, in
+	// certain cases such as where no CVE exists, right now we just
+	// ignore the result.
+	if CVE == "" || Hostname == "" || ID == "" || Title == "" {
+		fmt.Fprintf(os.Stderr, "warning: ignoring result with insufficient data: %v\n", buf)
+		return nil
+	}
+
+	// If it's a false result, for example if the action specified that
+	// false results should be included, just ignore it.
+	if Outcome == "false" {
+		fmt.Fprint(os.Stderr, "notice: ignoring false result in result set\n")
+		return nil
 	}
 
 	e, err := gozdef.NewVulnEvent()
