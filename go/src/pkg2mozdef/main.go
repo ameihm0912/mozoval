@@ -42,9 +42,10 @@ func getCVE(cve string) (govfeed.GVCVE, error) {
 
 func lineParser(buf string) error {
 	var (
-		CVE   string
-		ID    string
-		Title string
+		Hostname string
+		CVE      string
+		ID       string
+		Title    string
 	)
 
 	var pTable = []struct {
@@ -54,6 +55,7 @@ func lineParser(buf string) error {
 		{".*(CVE-\\d+-\\d+).*", &CVE},
 		{".*id=(\\S+).*", &ID},
 		{".*title=\"([^\"]+).*", &Title},
+		{"^(\\S+) ovalresult.*", &Hostname},
 	}
 
 	for i := range pTable {
@@ -70,10 +72,13 @@ func lineParser(buf string) error {
 		return err
 	}
 	e.SourceName = sourceName
+	e.Description = fmt.Sprintf("mozoval check for %v", Hostname)
 
 	// XXX These need to be set correctly
 	e.Asset.AssetID = 1
 	e.Vuln.VulnID = "mozoval-vuln"
+
+	e.Asset.Hostname = Hostname
 
 	if CVE != "" {
 		e.Vuln.Title = CVE
