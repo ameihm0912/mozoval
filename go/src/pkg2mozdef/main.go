@@ -22,8 +22,23 @@ import (
 
 const sourceName = "mozoval"
 
+var cveCache map[string]govfeed.GVCVE
+
 var useVFeed string
 var vulnEvents []gozdef.VulnEvent
+
+func getCVE(cve string) (govfeed.GVCVE, error) {
+	x, ok := cveCache[cve]
+	if ok {
+		return x, nil
+	}
+	x, err := govfeed.GVQuery(cve)
+	if err != nil {
+		return x, err
+	}
+	cveCache[cve] = x
+	return x, nil
+}
 
 func lineParser(buf string) error {
 	var (
@@ -61,7 +76,21 @@ func lineParser(buf string) error {
 	e.Vuln.VulnID = "mozoval-vuln"
 
 	if CVE != "" {
+		e.Vuln.Title = CVE
 		e.Vuln.CVE = append(e.Vuln.CVE, CVE)
+	}
+
+	if useVFeed != "" && CVE != "" {
+		cvedata, err := getCVE(CVE)
+		if err != nil {
+			return err
+		}
+		if cvedata.Description != "" {
+			e.Vuln.Description = cvedata.Description
+		}
+		if cvedata.CVSS != 0 {
+			e.Vuln.CVSS = cvedata.CVSS
+		}
 	}
 
 	if err = e.Validate(); err != nil {
@@ -87,6 +116,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
+		cveCache = make(map[string]govfeed.GVCVE)
 	}
 
 	fd, err := os.Open(args[0])
