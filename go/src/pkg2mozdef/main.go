@@ -12,18 +12,22 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/ameihm0912/govfeed/src/govfeed"
 	"github.com/ameihm0912/gozdef"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 const sourceName = "mozoval"
 
 var cveCache map[string]govfeed.GVCVE
 
+var aidFile string
 var useVFeed string
 var vulnEvents []gozdef.VulnEvent
 
@@ -38,6 +42,46 @@ func getCVE(cve string) (govfeed.GVCVE, error) {
 	}
 	cveCache[cve] = x
 	return x, nil
+}
+
+func getAssetID(hostname string, title string, check string) (int, error) {
+	h := 0
+	fd, err := os.Open(aidFile)
+	if err != nil {
+		return 0, err
+	}
+	scanner := bufio.NewScanner(fd)
+	for scanner.Scan() {
+		buf := scanner.Text()
+		bufargs := strings.Fields(buf)
+		if len(bufargs) != 4 {
+			return 0, errors.New("malformed asset id file")
+		}
+		ret, err := strconv.Atoi(bufargs[2])
+		if err != nil {
+			return 0, err
+		}
+		if ret > h {
+			h = ret
+		}
+		if bufargs[0] == hostname && bufargs[1] == title && bufargs[3] == check {
+			return ret, nil
+		}
+	}
+	fd.Close()
+
+	// Add a new entry if not present
+	h++
+	fmt.Fprintf(os.Stderr, "adding new asset %v %v %v\n", h, title, check)
+	fd, err = os.OpenFile(aidFile, os.O_RDWR|os.O_APPEND, 0644)
+	if err != nil {
+		return 0, err
+	}
+	buf := fmt.Sprintf("%v %v %v %v\n", hostname, title, h, check)
+	fd.WriteString(buf)
+	fd.Close()
+
+	return h, nil
 }
 
 func lineParser(buf string) error {
@@ -124,6 +168,7 @@ func lineParser(buf string) error {
 }
 
 func main() {
+	flag.StringVar(&aidFile, "a", "", "asset id file")
 	flag.StringVar(&useVFeed, "v", "", "path to vFeed CLI")
 	flag.Parse()
 	args := flag.Args()
