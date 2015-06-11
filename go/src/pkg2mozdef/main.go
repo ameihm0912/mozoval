@@ -44,7 +44,8 @@ func getCVE(cve string) (govfeed.GVCVE, error) {
 	return x, nil
 }
 
-func getAssetID(hostname string, title string, check string) (int, error) {
+// Just use the hostname/MIG target name as a key for the asset ID in this case
+func getAssetID(hostname string) (int, error) {
 	h := 0
 	fd, err := os.Open(aidFile)
 	if err != nil {
@@ -54,17 +55,17 @@ func getAssetID(hostname string, title string, check string) (int, error) {
 	for scanner.Scan() {
 		buf := scanner.Text()
 		bufargs := strings.Fields(buf)
-		if len(bufargs) != 4 {
+		if len(bufargs) != 2 {
 			return 0, errors.New("malformed asset id file")
 		}
-		ret, err := strconv.Atoi(bufargs[2])
+		ret, err := strconv.Atoi(bufargs[1])
 		if err != nil {
 			return 0, err
 		}
 		if ret > h {
 			h = ret
 		}
-		if bufargs[0] == hostname && bufargs[1] == title && bufargs[3] == check {
+		if bufargs[0] == hostname {
 			return ret, nil
 		}
 	}
@@ -72,12 +73,12 @@ func getAssetID(hostname string, title string, check string) (int, error) {
 
 	// Add a new entry if not present
 	h++
-	fmt.Fprintf(os.Stderr, "adding new asset %v %v %v\n", h, title, check)
+	fmt.Fprintf(os.Stderr, "adding new asset %v %v\n", h, hostname)
 	fd, err = os.OpenFile(aidFile, os.O_RDWR|os.O_APPEND, 0644)
 	if err != nil {
 		return 0, err
 	}
-	buf := fmt.Sprintf("%v %v %v %v\n", hostname, title, h, check)
+	buf := fmt.Sprintf("%v %v\n", hostname, h)
 	fd.WriteString(buf)
 	fd.Close()
 
@@ -135,8 +136,12 @@ func lineParser(buf string) error {
 	e.SourceName = sourceName
 	e.Description = fmt.Sprintf("mozoval check for %v", Hostname)
 
+	e.Asset.AssetID, err = getAssetID(Hostname)
+	if err != nil {
+		return err
+	}
+
 	// XXX These need to be set correctly
-	e.Asset.AssetID = 1
 	e.Vuln.VulnID = "mozoval-vuln"
 
 	e.Asset.Hostname = Hostname
