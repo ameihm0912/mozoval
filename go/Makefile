@@ -1,12 +1,19 @@
 PROJS = oval goval goval-evrtest goval-pkgquery \
-	ubuntu-cve-tracker
+	ubuntu-cve-tracker pkg2mozdef
 GO = GOPATH=$(shell pwd):$(shell go env GOROOT)/bin go
 
 all: $(PROJS)
 
+depends:
+	$(GO) get github.com/ameihm0912/gozdef
+	$(GO) get github.com/ameihm0912/govfeed/src/govfeed
+
 oval:
 	$(GO) build oval
 	$(GO) install oval
+
+pkg2mozdef:
+	$(GO) install pkg2mozdef
 
 goval:
 	$(GO) install goval
