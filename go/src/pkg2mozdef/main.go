@@ -140,16 +140,12 @@ func lineParser(buf string) error {
 	if err != nil {
 		return err
 	}
-
-	// XXX These need to be set correctly
-	e.Vuln.VulnID = "mozoval-vuln"
-
 	e.Asset.Hostname = Hostname
 
-	if CVE != "" {
-		e.Vuln.Title = CVE
-		e.Vuln.CVE = append(e.Vuln.CVE, CVE)
-	}
+	e.Vuln.Status = "open"
+	e.Vuln.VulnID = CVE
+	e.Vuln.Title = ID
+	e.Vuln.CVE = append(e.Vuln.CVE, CVE)
 
 	if useVFeed != "" && CVE != "" {
 		cvedata, err := getCVE(CVE)
