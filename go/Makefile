@@ -31,4 +31,6 @@ clean:
 	rm -f bin/goval
 	rm -f bin/goval-evrtest
 	rm -f bin/goval-pkgquery
+	rm -f bin/ubuntu-cve-tracker
+	rm -f bin/pkg2mozdef
 	rm -f pkg/*/oval.a
